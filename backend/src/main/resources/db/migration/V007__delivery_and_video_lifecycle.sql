@@ -1,0 +1,11 @@
+ALTER TABLE app.newsletter_subscriptions ADD COLUMN verified_at timestamptz;
+ALTER TABLE app.newsletter_subscriptions ADD COLUMN consent_generation uuid NOT NULL DEFAULT gen_random_uuid();
+ALTER TABLE app.action_tokens DROP CONSTRAINT action_tokens_purpose_check;
+ALTER TABLE app.action_tokens ADD CONSTRAINT action_tokens_purpose_check CHECK(purpose IN('INVITE','APPOINTMENT_CONFIRM','UNSUBSCRIBE','NEWSLETTER_CONFIRM'));
+ALTER TABLE app.action_tokens ADD COLUMN subscription_id uuid;
+ALTER TABLE app.action_tokens ADD COLUMN consent_generation uuid;
+ALTER TABLE app.action_tokens ADD CONSTRAINT action_subscription_fk FOREIGN KEY(tenant_id,subscription_id) REFERENCES app.newsletter_subscriptions(tenant_id,id);
+ALTER TABLE app.jobs ADD COLUMN delivery_cipher bytea;
+ALTER TABLE app.video_rooms ADD COLUMN opened_at timestamptz;
+ALTER TABLE app.video_rooms ADD COLUMN closed_at timestamptz;
+ALTER TABLE app.organization_memberships ADD COLUMN version integer NOT NULL DEFAULT 1;

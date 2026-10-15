@@ -1,0 +1,56 @@
+name: conhecerse-local
+services:
+  postgres:
+    image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?Run scripts/init-local.ps1}
+      LOCAL_RUNTIME_PASSWORD: ${DB_PASSWORD:?}
+      LOCAL_MIGRATOR_PASSWORD: ${MIGRATOR_PASSWORD:?}
+      LOCAL_WEB_PASSWORD: ${WEB_DB_PASSWORD:?}
+      LOCAL_IAM_PASSWORD: ${IAM_DB_PASSWORD:?}
+    ports: ["127.0.0.1:15432:5432"]
+    volumes: ["postgres-data:/var/lib/postgresql/data", "./init-roles.sql:/docker-entrypoint-initdb.d/01-roles.sql:ro"]
+    healthcheck: {test: [CMD-SHELL, "pg_isready -U postgres"], interval: 5s, timeout: 3s, retries: 20}
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.1@sha256:79c623a22abacf3fe6c00a5fb30f5b7843d717b234033b80995891c06116d244
+    command: [start-dev, --import-realm]
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/conhecerse_iam
+      KC_DB_USERNAME: conhecerse_iam
+      KC_DB_PASSWORD: ${IAM_DB_PASSWORD:?}
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin-local
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${IAM_ADMIN_PASSWORD:?}
+      KC_HOSTNAME: http://localhost:8180
+      KC_HEALTH_ENABLED: "true"
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:?}
+      APP_ORIGIN: ${APP_ORIGIN:-http://localhost:3000}
+    ports: ["127.0.0.1:8180:8080"]
+    volumes: ["../keycloak/realm.json:/opt/keycloak/data/import/conhecerse-realm.json:ro"]
+    depends_on: {postgres: {condition: service_healthy}}
+  openbao:
+    image: openbao/openbao:2.7.1@sha256:6d2b93856e3fcf7b18ad855a0b51eaba474dc8b79cf554379ea32034797d2acf
+    command: [server, -config=/bao/config/config.hcl]
+    cap_add: [IPC_LOCK]
+    ports: ["127.0.0.1:8200:8200"]
+    volumes: ["bao-data:/bao/data", "./openbao.hcl:/bao/config/config.hcl:ro"]
+  minio:
+    image: conhecerse/minio-local:source-2025-10-15
+    build: {context: ., dockerfile: minio.Dockerfile}
+    command: [server, /data, --console-address, ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?}
+      MINIO_API_CORS_ALLOW_ORIGIN: ${APP_ORIGIN:-http://localhost:3000}
+    ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]
+    volumes: ["object-data:/data"]
+  clamav:
+    image: clamav/clamav:1.5.4@sha256:638d90201ee7ee6a82d249a2fc23b132e578673b5f1f2766852b127676ca1ef6
+    ports: ["127.0.0.1:3310:3310"]
+    volumes: ["clamav-data:/var/lib/clamav"]
+volumes:
+  postgres-data: {}
+  bao-data: {}
+  object-data: {}
+  clamav-data: {}

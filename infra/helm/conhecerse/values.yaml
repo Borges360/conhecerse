@@ -1,0 +1,24 @@
+environment: staging
+releaseApproved: false
+host: app.example.invalid
+authHost: auth.example.invalid
+tlsSecret: conhecerse-tls
+registry: registry.example.invalid
+tag: ""
+imageDigests: {web: "", api: "", iam: "", av: ""}
+replicas: {web: 2, api: 2, worker: 2, iam: 2, av: 1}
+secrets: {web: conhecerse-web, api: conhecerse-app, iam: conhecerse-iam}
+resources:
+  web: {requests: {cpu: 100m, memory: 256Mi}, limits: {memory: 512Mi}}
+  api: {requests: {cpu: 200m, memory: 512Mi}, limits: {memory: 1024Mi}}
+  worker: {requests: {cpu: 200m, memory: 256Mi}, limits: {memory: 512Mi}}
+  iam: {requests: {cpu: 200m, memory: 512Mi}, limits: {memory: 1024Mi}}
+  av: {requests: {cpu: 250m, memory: 1536Mi}, limits: {memory: 3072Mi}}
+openbao:
+  url: https://openbao.example.invalid
+  authRole: conhecerse
+  tokenAudience: openbao
+  image: openbao/openbao:2.7.1@sha256:6d2b93856e3fcf7b18ad855a0b51eaba474dc8b79cf554379ea32034797d2acf
+observability:
+  enabled: true
+networkPolicy: true

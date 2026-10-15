@@ -1,0 +1,11 @@
+.git
+.local
+**/node_modules
+**/.next
+**/target
+**/test-results
+**/playwright-report
+**/.env
+**/.env.*.local
+infra/secrets
+*.docx

@@ -1,0 +1,114 @@
+version: 1
+status: normative
+principles:
+  - All mutating commands must execute authorization before state transition.
+  - All domain events are persisted in the same transaction as the state change.
+  - Invalid state transition results in 409 INVALID_TRANSITION with no side effects.
+  - Every external side effect is retried only after checking local idempotency and provider status.
+workflows:
+  remote_protocol:
+    initial: PENDING
+    terminal: [APPROVED, REJECTED]
+    transitions:
+      - {command: review, from: [PENDING], to: APPROVED, guard: ASSIGNED_CLINICIAN_MFA_CLINICAL_GATE}
+      - {command: reject, from: [PENDING], to: REJECTED, guard: ASSIGNED_CLINICIAN_MFA}
+    invariants: [LATEST_VERSION_MUST_BE_APPROVED_FOR_VIDEO, PROTOCOL_ENCRYPTED, CLINICAL_EMERGENCY_FIELDS_ONLY_FOR_CLINICIAN]
+  record_export:
+    initial: PREPARED
+    terminal: [DELIVERED, REVOKED]
+    transitions:
+      - {command: release, from: [PREPARED], to: RELEASED, guard: CLINICIAN_REVIEW_AND_VERIFIED_RECIPIENT}
+      - {command: serve_bytes, from: [RELEASED], to: DELIVERED, guard: AUTHENTICATED_RECIPIENT_AND_UNEXPIRED_SINGLE_USE_TICKET}
+      - {command: revoke, from: [PREPARED, RELEASED, DELIVERED], to: REVOKED, guard: ASSIGNED_CLINICIAN_MFA}
+    invariants: [RESTRICTED_TESTS_EXCLUDED, NO_AUTO_RELEASE, MAX_RELEASE_7_DAYS, TICKET_TTL_60_SECONDS, CLINICAL_REVIEW_IMMUTABLE_AFTER_RELEASE]
+  emergency_access:
+    initial: PENDING
+    terminal: [REVOKED, DENIED]
+    transitions:
+      - {command: approve, from: [PENDING], to: ACTIVE, guard: TWO_DISTINCT_REVIEWERS_OTHER_THAN_REQUESTER_SECURITY_AND_ASSIGNED_CLINICAL}
+      - {command: deny, from: [PENDING], to: DENIED, guard: AUTHORIZED_REVIEWER_MFA}
+      - {command: revoke, from: [PENDING, ACTIVE], to: REVOKED, guard: AUTHORIZED_ACTOR_MFA}
+    invariants: [MAX_15_MINUTES, EXPIRED_GRANT_DENIED, SIGNED_NOTES_READ_ONLY, NO_ADMIN_CLINICAL_WRITE, AUDIT_EVERY_READ]
+  appointment:
+    initial: REQUESTED
+    terminal: [COMPLETED, NO_SHOW, CANCELLED]
+    transitions:
+      - {command: accept, from: [REQUESTED], to: SCHEDULED, guard: STAFF_CAN_SCHEDULE_AND_FREE_SLOT, event: AppointmentScheduled}
+      - {command: reject, from: [REQUESTED], to: CANCELLED, guard: STAFF_CAN_SCHEDULE, event: AppointmentCancelled}
+      - {command: confirm, from: [SCHEDULED], to: CONFIRMED, guard: PATIENT_OR_VALID_GUARDIAN_BEFORE_START, event: AppointmentConfirmed}
+      - {command: confirm, from: [CONFIRMED], to: CONFIRMED, guard: SAME_CONFIRMED_PARTICIPANT, result: IDEMPOTENT_NOOP}
+      - {command: start, from: [SCHEDULED, CONFIRMED], to: IN_PROGRESS, guard: ASSIGNED_CLINICIAN_IN_WINDOW, event: AppointmentStarted}
+      - {command: complete, from: [IN_PROGRESS], to: COMPLETED, guard: ASSIGNED_CLINICIAN, event: AppointmentCompleted}
+      - {command: no-show, from: [SCHEDULED, CONFIRMED], to: NO_SHOW, guard: ASSIGNED_CLINICIAN_AFTER_START_15M, event: AppointmentNoShow}
+      - {command: cancel, from: [REQUESTED, SCHEDULED, CONFIRMED], to: CANCELLED, guard: AUTHORIZED_ACTOR_AND_POLICY, event: AppointmentCancelled}
+    invariants:
+      - BUSY_RANGE_NO_OVERLAP_FOR_ACTIVE_STATUS
+      - COMPLETED_NOT_REOPENED
+      - ONE_PATIENT_ONE_PROFESSIONAL_PER_APPOINTMENT
+      - CONFIRMATION_NOT_REQUIRED_TO_START
+  reschedule_request:
+    initial: PENDING
+    terminal: [ACCEPTED, DECLINED, EXPIRED, WITHDRAWN]
+    transitions:
+      - {command: accept, from: [PENDING], to: ACCEPTED, guard: STAFF_AUTHORIZED_AND_TARGET_SLOT_FREE, event: AppointmentRescheduled, transaction: ATOMIC_CANCEL_OLD_CREATE_NEW}
+      - {command: decline, from: [PENDING], to: DECLINED, guard: STAFF_AUTHORIZED}
+      - {command: expire, from: [PENDING], to: EXPIRED, guard: DUE_DATE_REACHED}
+      - {command: withdraw, from: [PENDING], to: WITHDRAWN, guard: REQUESTER_VERIFIED}
+    invariants:
+      - ONE_PENDING_REQUEST_PER_APPOINTMENT
+      - ACCEPTED_MUST_HAVE_NEW_APPOINTMENT
+      - FAILED_TARGET_SLOT_MUST_KEEP_REQUEST_PENDING_AND_ORIGINAL_ACTIVE
+  clinical_note:
+    initial: DRAFT
+    terminal: [SIGNED]
+    transitions:
+      - {command: save, from: [DRAFT], to: DRAFT, guard: AUTHOR_AND_CURRENT_VERSION, mutation: CONTENT_ALLOWED}
+      - {command: sign, from: [DRAFT], to: SIGNED, guard: AUTHOR_MFA_AND_CURRENT_VERSION, event: ClinicalNoteSigned}
+      - {command: addendum, from: [SIGNED], to: SIGNED, guard: ASSIGNED_CLINICIAN, mutation: NEW_DRAFT_WITH_REVISION_OF}
+    invariants:
+      - SIGNED_CONTENT_NEVER_UPDATED
+      - SIGNED_CONTENT_HASH_REQUIRED
+      - RESTRICTED_TESTS_NEVER_ENTER_GENERAL_PATIENT_EXPORT
+  invoice:
+    initial: DRAFT
+    terminal: [CANCELLED, REFUNDED]
+    transitions:
+      - {command: issue, from: [DRAFT], to: OPEN, guard: BILLING_WRITE_AND_VALID_ITEMS, event: InvoiceIssued}
+      - {command: apply_partial_payment, from: [OPEN, OVERDUE, PARTIALLY_PAID], to: PARTIALLY_PAID, guard: CANONICAL_PROVIDER_OR_AUDITED_MANUAL_PAYMENT}
+      - {command: apply_full_payment, from: [OPEN, OVERDUE, PARTIALLY_PAID], to: PAID, guard: SETTLED_NET_AMOUNT_GE_INVOICE_AMOUNT, event: PaymentStateUpdated}
+      - {command: overdue, from: [OPEN, PARTIALLY_PAID], to: OVERDUE, guard: DUE_DATE_BEFORE_TODAY_AND_NOT_FULLY_PAID}
+      - {command: cancel, from: [DRAFT, OPEN], to: CANCELLED, guard: ZERO_RECEIVED_AMOUNT_AND_BILLING_AUTHORIZED}
+      - {command: refund, from: [PAID, PARTIALLY_PAID], to: REFUNDED, guard: FULL_NET_REFUND_CONFIRMED_AND_LEDGER_COMPENSATED}
+      - {command: dispute, from: [PAID, PARTIALLY_PAID, OPEN, OVERDUE], to: DISPUTED, guard: PROVIDER_CHARGEBACK_OR_MANUAL_DISPUTE}
+      - {command: resolve_dispute, from: [DISPUTED], to: PAID, guard: PROVIDER_RESOLUTION_AND_FULLY_SETTLED}
+      - {command: resolve_dispute, from: [DISPUTED], to: OPEN, guard: PROVIDER_RESOLUTION_AND_NOT_SETTLED}
+    invariants:
+      - NO_PAYMENT_BACKWARD_STATE_WITHOUT_COMPENSATING_EVENT
+      - FINANCIAL_LEDGER_APPEND_ONLY
+      - EVENT_ID_APPLIED_ONCE
+      - NO_CARD_DATA_IN_PLATFORM
+  document:
+    initial: DRAFT
+    terminal: [REVOKED]
+    transitions:
+      - {command: render_draft, from: [DRAFT], to: DRAFT, guard: AUTHOR, mutation: CREATE_PREVIEW_FILE_NOT_OFFICIAL}
+      - {command: request_signature, from: [DRAFT], to: PENDING_SIGNATURE, guard: AUTHOR_AND_TEMPLATE_APPROVED}
+      - {command: attach_signed_pdf, from: [PENDING_SIGNATURE], to: ISSUED, guard: AUTHOR_AND_SIGNATURE_REVIEW_AND_CLEAN_FILE, event: DocumentIssued}
+      - {command: revoke, from: [ISSUED], to: REVOKED, guard: AUTHOR_AND_DOCUMENTED_REASON, event: DocumentRevoked}
+      - {command: publish, from: [ISSUED], to: ISSUED, guard: AUTHOR_AND_ALLOWED_PATIENT, mutation: PUBLICATION_TIMESTAMP_ONLY}
+    invariants:
+      - SIGNED_PDF_HASH_STORED
+      - DOCUMENT_CONTENT_NOT_MODIFIED_AFTER_ISSUE
+      - PATIENT_LINK_NOT_VALID_IF_REVOKED
+  external_receipt:
+    initial: RECEIPT_PENDING
+    terminal: [EXTERNAL_ISSUED, NOT_APPLICABLE, VOIDED_EXTERNAL]
+    transitions:
+      - {command: register_external, from: [RECEIPT_PENDING, REVIEW_REQUIRED], to: EXTERNAL_ISSUED, guard: AUTHORIZED_CLINICIAN_AND_OFFICIAL_ID_AND_CONSISTENT_PAYMENT}
+      - {command: mark_not_applicable, from: [RECEIPT_PENDING, REVIEW_REQUIRED], to: NOT_APPLICABLE, guard: FISCAL_REVIEWED_REASON}
+      - {command: mark_inconsistent, from: [EXTERNAL_ISSUED], to: REVIEW_REQUIRED, guard: RECONCILIATION_DIVERGENCE}
+      - {command: register_official_cancellation, from: [EXTERNAL_ISSUED, REVIEW_REQUIRED], to: VOIDED_EXTERNAL, guard: USER_DECLARE_OFFICIAL_REVOCATION}
+    invariants:
+      - NO_GOV_CREDENTIALS_STORED
+      - OFFICIAL_RECEIPT_ID_UNIQUE_PER_TENANT
+      - SYSTEM_NEVER_CREATES_GOV_RECEIPT

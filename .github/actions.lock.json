@@ -1,0 +1,11 @@
+{
+  "actions/checkout@v4": "11d5960a326750d5838078e36cf38b85af677262",
+  "actions/setup-node@v4": "49933ea5288caeca8642d1e84afbd3f7d6820020",
+  "pnpm/action-setup@v4": "b906affcce14559ad1aafd4ab0e942779e9f58b1",
+  "actions/setup-python@v5": "a26af69be951a213d495a4c3e4e4022e16d87065",
+  "actions/upload-artifact@v4": "ea165f8d65b6e75b540449e92b4886f43607fa02",
+  "actions/setup-java@v4": "cf277c60eb25467037889841efdb72551f06f6c3",
+  "aquasecurity/trivy-action@0.35.0": "57a97c7e7821a5776cebc9bb87c984fa69cba8f1",
+  "github/codeql-action/init@v4": "24c54180a607b1449ed407dd24f251e4e9147c8d",
+  "github/codeql-action/analyze@v4": "24c54180a607b1449ed407dd24f251e4e9147c8d"
+}

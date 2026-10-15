@@ -1,0 +1,80 @@
+server:
+  address: ${BIND_ADDRESS:0.0.0.0}
+  port: ${PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+  max-http-request-header-size: 16KB
+spring:
+  application:
+    name: conhecerse
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/conhecerse}
+    username: ${DB_USER:conhecerse_runtime}
+    password: ${DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: 12
+      connection-timeout: 5000
+  flyway:
+    enabled: ${MIGRATIONS_ENABLED:false}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/conhecerse}
+    user: ${MIGRATOR_USER:conhecerse_migrator}
+    password: ${MIGRATOR_PASSWORD:}
+    default-schema: app
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OIDC_ISSUER:http://localhost:8180/realms/conhecerse}
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 26MB
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+  main:
+    banner-mode: off
+management:
+  metrics:
+    tags:
+      application: conhecerse
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db,kms
+logging:
+  level:
+    org.springframework.jdbc: WARN
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+app:
+  environment: ${APP_ENV:local}
+  worker: ${WORKER_ENABLED:false}
+  oidc-audience: ${OIDC_AUDIENCE:conhecerse-api}
+  public-url: ${PUBLIC_URL:http://localhost:3000}
+  encryption:
+    provider: ${ENCRYPTION_PROVIDER:openbao}
+    local-key: ${LOCAL_ENCRYPTION_KEY:}
+    lookup-key: ${LOOKUP_HMAC_KEY:}
+    bao-url: ${BAO_URL:http://openbao.platform.svc.cluster.local:8200}
+    bao-token-file: ${BAO_TOKEN_FILE:/var/run/secrets/openbao/token}
+  storage:
+    endpoint: ${S3_ENDPOINT:http://localhost:9000}
+    region: ${S3_REGION:sa-east-1}
+    bucket: ${S3_BUCKET:conhecerse-private}
+  video:
+    enabled: ${VIDEO_APPROVED:false}
+    signaling-url: ${LIVEKIT_URL:}
+    api-key: ${LIVEKIT_API_KEY:}
+    api-secret: ${LIVEKIT_API_SECRET:}
+  fiscal-approved: ${FISCAL_APPROVED:false}
+  templates-approved: ${TEMPLATES_APPROVED:false}

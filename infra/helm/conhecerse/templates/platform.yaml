@@ -1,0 +1,94 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata: {name: {{ .Release.Name }}}
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: {{ .Release.Name }}-bao}
+data:
+  agent.hcl: |
+    exit_after_auth = false
+    pid_file = "/tmp/bao-agent.pid"
+    auto_auth {
+      method "kubernetes" {
+        mount_path = "auth/kubernetes"
+        config = { role = "{{ .Values.openbao.authRole }}", token_path = "/var/run/secrets/workload/token" }
+      }
+      sink "file" { config = { path = "/var/run/secrets/openbao/token", mode = 0600 } }
+    }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: {name: {{ .Release.Name }}}
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: [{{ .Values.host | quote }}, {{ .Values.authHost | quote }}]
+      secretName: {{ .Values.tlsSecret }}
+  rules:
+    - host: {{ .Values.host | quote }}
+      http:
+        paths:
+          - path: /v1/webhooks/asaas
+            pathType: Prefix
+            backend: {service: {name: {{ .Release.Name }}-api, port: {name: http}}}
+          - path: /v1/webhooks/communications
+            pathType: Prefix
+            backend: {service: {name: {{ .Release.Name }}-api, port: {name: http}}}
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: {{ .Release.Name }}-web, port: {name: http}}}
+    - host: {{ .Values.authHost | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: {{ .Release.Name }}-iam, port: {name: http}}}
+{{- if .Values.observability.enabled }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata: {name: {{ .Release.Name }}}
+spec:
+  selector: {matchLabels: {component: api}}
+  endpoints: [{port: http, path: /actuator/prometheus, interval: 30s}]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: {name: {{ .Release.Name }}}
+spec:
+  groups:
+    - name: conhecerse
+      rules:
+        - alert: ConhecerseErrors
+          expr: sum(rate(http_server_requests_seconds_count{application="conhecerse",status=~"5.."}[5m])) / clamp_min(sum(rate(http_server_requests_seconds_count{application="conhecerse"}[5m])),1) > 0.01
+          for: 5m
+          labels: {severity: critical}
+          annotations: {summary: "Erros HTTP acima de 1%; verificar runbook de incidentes"}
+        - alert: ConhecerseDeadLetters
+          expr: increase(conhecerse_dlq_total[10m]) > 0
+          for: 10m
+          labels: {severity: critical}
+          annotations: {summary: "Fila contém operações em DLQ; revisar antes de replay"}
+{{- end }}
+{{- if .Values.networkPolicy }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: {{ .Release.Name }}}
+spec:
+  podSelector: {matchLabels: {app.kubernetes.io/part-of: conhecerse}}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from: [{podSelector: {matchLabels: {app.kubernetes.io/part-of: conhecerse}}}]
+    - from: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}}]
+      ports: [{protocol: TCP, port: 3000}, {protocol: TCP, port: 8080}]
+    - from: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: observability}}}]
+      ports: [{protocol: TCP, port: 8080}]
+  egress:
+    - to: [{namespaceSelector: {}}]
+      ports: [{protocol: UDP, port: 53}, {protocol: TCP, port: 53}]
+    - to: [{podSelector: {matchLabels: {app.kubernetes.io/part-of: conhecerse}}}]
+    - ports: [{protocol: TCP, port: 443}, {protocol: TCP, port: 5432}, {protocol: TCP, port: 8200}]
+{{- end }}

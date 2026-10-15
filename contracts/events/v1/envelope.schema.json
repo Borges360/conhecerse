@@ -1,0 +1,512 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:conhecerse:events:v1",
+  "title": "Conhecer-se integration event v1",
+  "type": "object",
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "tenantId",
+    "aggregateType",
+    "aggregateId",
+    "aggregateVersion",
+    "occurredAt",
+    "correlationId",
+    "payload"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "eventType": {
+      "enum": [
+        "AppointmentRequested",
+        "AppointmentScheduled",
+        "AppointmentConfirmed",
+        "AppointmentStarted",
+        "AppointmentCancelled",
+        "AppointmentRescheduled",
+        "AppointmentCompleted",
+        "AppointmentNoShow",
+        "PatientInvited",
+        "ClinicalNoteSigned",
+        "InvoiceIssued",
+        "PaymentStateUpdated",
+        "DocumentIssued",
+        "DocumentRevoked",
+        "MaterialShared",
+        "ContentREVIEWED",
+        "ContentPUBLISHED",
+        "ContentARCHIVED",
+        "DailyReportRequested",
+        "PrivacyRequestCreated"
+      ]
+    },
+    "eventVersion": {
+      "const": 1
+    },
+    "tenantId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "aggregateType": {
+      "type": "string"
+    },
+    "aggregateId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "aggregateVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "correlationId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "payload": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Za-z]+Id$": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "AppointmentRequested"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "appointment"
+          },
+          "payload": {
+            "required": [
+              "appointmentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "AppointmentScheduled"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "appointment"
+          },
+          "payload": {
+            "required": [
+              "appointmentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "AppointmentConfirmed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "appointment"
+          },
+          "payload": {
+            "required": [
+              "appointmentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "AppointmentStarted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "appointment"
+          },
+          "payload": {
+            "required": [
+              "appointmentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "AppointmentCancelled"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "appointment"
+          },
+          "payload": {
+            "required": [
+              "appointmentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "AppointmentRescheduled"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "appointment"
+          },
+          "payload": {
+            "required": [
+              "appointmentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "AppointmentCompleted"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "appointment"
+          },
+          "payload": {
+            "required": [
+              "appointmentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "AppointmentNoShow"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "appointment"
+          },
+          "payload": {
+            "required": [
+              "appointmentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "PatientInvited"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "patient"
+          },
+          "payload": {
+            "required": [
+              "patientId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "ClinicalNoteSigned"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "clinicalNote"
+          },
+          "payload": {
+            "required": [
+              "clinicalNoteId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "InvoiceIssued"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "invoice"
+          },
+          "payload": {
+            "required": [
+              "invoiceId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "PaymentStateUpdated"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "invoice"
+          },
+          "payload": {
+            "required": [
+              "invoiceId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "DocumentIssued"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "document"
+          },
+          "payload": {
+            "required": [
+              "documentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "DocumentRevoked"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "document"
+          },
+          "payload": {
+            "required": [
+              "documentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "MaterialShared"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "content"
+          },
+          "payload": {
+            "required": [
+              "contentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "ContentREVIEWED"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "content"
+          },
+          "payload": {
+            "required": [
+              "contentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "ContentPUBLISHED"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "content"
+          },
+          "payload": {
+            "required": [
+              "contentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "ContentARCHIVED"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "content"
+          },
+          "payload": {
+            "required": [
+              "contentId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "DailyReportRequested"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "report"
+          },
+          "payload": {
+            "required": [
+              "reportId"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "eventType": {
+            "const": "PrivacyRequestCreated"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "aggregateType": {
+            "const": "privacyRequest"
+          },
+          "payload": {
+            "required": [
+              "privacyRequestId"
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

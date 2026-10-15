@@ -1,0 +1,479 @@
+# Prepared only; publish through gitops-publish.ps1. Total application memory limits: 3840 MiB.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conhecerse
+  namespace: dev
+  labels:
+    app: conhecerse
+    part-of: conhecerse
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: conhecerse
+  template:
+    metadata:
+      labels:
+        app: conhecerse
+        part-of: conhecerse
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: app
+        image: registry.platform.svc.cluster.local:5000/conhecerse:aguardando-primeiro-build
+        ports:
+        - name: http
+          containerPort: 3000
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 256Mi
+        startupProbe:
+          tcpSocket:
+            port: 3000
+          periodSeconds: 10
+          failureThreshold: 60
+        livenessProbe:
+          tcpSocket:
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /api/ready
+            port: 3000
+          periodSeconds: 10
+          timeoutSeconds: 5
+        envFrom:
+        - secretRef:
+            name: conhecerse-web
+        env:
+        - name: PORT
+          value: '3000'
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conhecerse
+  namespace: dev
+spec:
+  selector:
+    app: conhecerse
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: conhecerse
+  namespace: dev
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: conhecerse.lab
+    http:
+      paths:
+      - path: /v1/webhooks
+        pathType: Prefix
+        backend:
+          service:
+            name: conhecerse-api
+            port:
+              number: 8080
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: conhecerse
+            port:
+              number: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conhecerse-api
+  namespace: dev
+  labels:
+    app: conhecerse-api
+    part-of: conhecerse
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: conhecerse-api
+  template:
+    metadata:
+      labels:
+        app: conhecerse-api
+        part-of: conhecerse
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: app
+        image: registry.platform.svc.cluster.local:5000/conhecerse-api:aguardando-primeiro-build
+        ports:
+        - name: http
+          containerPort: 8080
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 192Mi
+          limits:
+            memory: 512Mi
+        startupProbe:
+          tcpSocket:
+            port: 8080
+          periodSeconds: 10
+          failureThreshold: 60
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          periodSeconds: 10
+          timeoutSeconds: 5
+        envFrom:
+        - secretRef:
+            name: conhecerse-app
+        env:
+        - name: WORKER_ENABLED
+          value: 'false'
+        volumeMounts:
+        - name: bao-token
+          mountPath: /var/run/secrets/openbao
+          readOnly: true
+      volumes:
+      - name: bao-token
+        secret:
+          secretName: conhecerse-bao-token
+          optional: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conhecerse-api
+  namespace: dev
+spec:
+  selector:
+    app: conhecerse-api
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conhecerse-worker
+  namespace: dev
+  labels:
+    app: conhecerse-worker
+    part-of: conhecerse
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: conhecerse-worker
+  template:
+    metadata:
+      labels:
+        app: conhecerse-worker
+        part-of: conhecerse
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: app
+        image: registry.platform.svc.cluster.local:5000/conhecerse-api:aguardando-primeiro-build
+        ports:
+        - name: http
+          containerPort: 8080
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            memory: 512Mi
+        startupProbe:
+          tcpSocket:
+            port: 8080
+          periodSeconds: 10
+          failureThreshold: 60
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: 8080
+          periodSeconds: 10
+          timeoutSeconds: 5
+        envFrom:
+        - secretRef:
+            name: conhecerse-app
+        env:
+        - name: WORKER_ENABLED
+          value: 'true'
+        volumeMounts:
+        - name: bao-token
+          mountPath: /var/run/secrets/openbao
+          readOnly: true
+      volumes:
+      - name: bao-token
+        secret:
+          secretName: conhecerse-bao-token
+          optional: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conhecerse-iam
+  namespace: dev
+  labels:
+    app: conhecerse-iam
+    part-of: conhecerse
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: conhecerse-iam
+  template:
+    metadata:
+      labels:
+        app: conhecerse-iam
+        part-of: conhecerse
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: app
+        image: registry.platform.svc.cluster.local:5000/conhecerse-iam:aguardando-primeiro-build
+        ports:
+        - name: http
+          containerPort: 8080
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+        startupProbe:
+          tcpSocket:
+            port: 8080
+          periodSeconds: 10
+          failureThreshold: 60
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 20
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          periodSeconds: 10
+        envFrom:
+        - secretRef:
+            name: conhecerse-iam
+        env:
+        - name: KC_HOSTNAME
+          value: http://conhecerse-auth.lab
+        - name: KC_HTTP_ENABLED
+          value: 'true'
+        - name: KC_PROXY_HEADERS
+          value: xforwarded
+        - name: KC_HEALTH_ENABLED
+          value: 'true'
+        - name: JAVA_OPTS_KC_HEAP
+          value: -Xms64m -Xmx300m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conhecerse-iam
+  namespace: dev
+spec:
+  selector:
+    app: conhecerse-iam
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: conhecerse-iam
+  namespace: dev
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: conhecerse-auth.lab
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: conhecerse-iam
+            port:
+              number: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conhecerse-av
+  namespace: dev
+  labels:
+    app: conhecerse-av
+    part-of: conhecerse
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: conhecerse-av
+  template:
+    metadata:
+      labels:
+        app: conhecerse-av
+        part-of: conhecerse
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 100
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: app
+        image: registry.platform.svc.cluster.local:5000/conhecerse-av:aguardando-primeiro-build
+        ports:
+        - name: clam
+          containerPort: 3310
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 100
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 100m
+            memory: 768Mi
+          limits:
+            memory: 2048Mi
+        startupProbe:
+          tcpSocket:
+            port: 3310
+          periodSeconds: 10
+          failureThreshold: 60
+        livenessProbe:
+          tcpSocket:
+            port: 3310
+          initialDelaySeconds: 30
+          periodSeconds: 20
+        readinessProbe:
+          tcpSocket:
+            port: 3310
+          periodSeconds: 10
+        volumeMounts:
+        - name: signatures
+          mountPath: /var/lib/clamav
+      volumes:
+      - name: signatures
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: conhecerse-av
+  namespace: dev
+spec:
+  selector:
+    app: conhecerse-av
+  ports:
+  - name: clam
+    port: 3310
+    targetPort: 3310

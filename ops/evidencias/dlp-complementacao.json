@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-10-14T10:19:41.806066+00:00",
+  "scope": "explicit technical logs only; not traces, metrics or final images",
+  "releaseApproved": false,
+  "results": [
+    {
+      "path": ".local/completion-api-final.log",
+      "sha256": "a0d914c9601a4f75c18ca0657a62de30e240e7a01d9abe22c6f2d98895688dd3",
+      "findings": {
+        "clinicalCanary": 0,
+        "bearerToken": 0,
+        "jwtToken": 0,
+        "privateKey": 0
+      },
+      "passed": true
+    },
+    {
+      "path": ".local/completion-iam.log",
+      "sha256": "92bf2ebd426991a0676700ecfa397a0610d1d3df729ddfb68c125d2604ea9df3",
+      "findings": {
+        "clinicalCanary": 0,
+        "bearerToken": 0,
+        "jwtToken": 0,
+        "privateKey": 0
+      },
+      "passed": true
+    },
+    {
+      "path": ".local/completion-web-v2.log",
+      "sha256": "13d4b8e01934769ef66d1eb34c43632b76687314c8c567797ca7858dbb6e6178",
+      "findings": {
+        "clinicalCanary": 0,
+        "bearerToken": 0,
+        "jwtToken": 0,
+        "privateKey": 0
+      },
+      "passed": true
+    },
+    {
+      "path": ".local/completion-final-offline-tests.log",
+      "sha256": "a2367f13af19ec8bc59072c0c5c2d5d0f28efdfb5e0e7260be3a00c3ee5a0ad3",
+      "findings": {
+        "clinicalCanary": 0,
+        "bearerToken": 0,
+        "jwtToken": 0,
+        "privateKey": 0
+      },
+      "passed": true
+    }
+  ],
+  "passed": true
+}

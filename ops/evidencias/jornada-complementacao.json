@@ -1,0 +1,10 @@
+{
+  "recordedAt": "2026-10-14T10:10:07.897Z",
+  "realOidc": true,
+  "realPostgreSql": true,
+  "releaseApproved": false,
+  "registrationUi": true,
+  "profileUi": true,
+  "remoteProtocolUi": true,
+  "axeCriticalSerious": 0
+}

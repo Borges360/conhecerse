@@ -1,0 +1,5 @@
+-- Local development only. Credentials are injected by Compose, never reused on db01.
+CREATE ROLE conhecerse_runtime LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS;
+CREATE ROLE conhecerse_web LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS;
+CREATE ROLE conhecerse_migrator LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS;
+CREATE DATABASE conhecerse OWNER conhecerse_migrator;

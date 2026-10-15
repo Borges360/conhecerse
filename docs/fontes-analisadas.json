@@ -1,0 +1,104 @@
+[
+  {
+    "file": "contracts/eventos.md",
+    "bytes": 4637,
+    "charactersAnalyzed": 4551,
+    "sha256": "a05687272a0cf3b5cdb03dfa394fd8070a119393b96ccb95f0b22fb1991fc00e"
+  },
+  {
+    "file": "contracts/generate_openapi.py",
+    "bytes": 35632,
+    "charactersAnalyzed": 35521,
+    "sha256": "c00689612439c14aac731ddc388967d1e87396a594e41ae4372b347e205b4a50"
+  },
+  {
+    "file": "contracts/openapi.yaml",
+    "bytes": 180743,
+    "charactersAnalyzed": 180382,
+    "sha256": "7a22540c5d851853320ba1c24a28680a0f90537a3e5729e7053a5d98c8357770"
+  },
+  {
+    "file": "contracts/permissions.yaml",
+    "bytes": 5212,
+    "charactersAnalyzed": 5212,
+    "sha256": "f51527816cea6ecdcbcded3ddfe031759d940caef1f0679cf635e453e84e4fcc"
+  },
+  {
+    "file": "contracts/workflows.yaml",
+    "bytes": 6094,
+    "charactersAnalyzed": 6094,
+    "sha256": "8125a792d6dd030cc5d919a6c61d79049e45e6f28ad0ef41d29134d68e802446"
+  },
+  {
+    "file": "db/schema.sql",
+    "bytes": 39815,
+    "charactersAnalyzed": 39801,
+    "sha256": "cfb5bf7024a6a9ec60981be9fb73a223c7152acafd2eae33dfac105889a1e92b"
+  },
+  {
+    "file": "DECISOES.md",
+    "bytes": 6147,
+    "charactersAnalyzed": 5889,
+    "sha256": "7b40c953834dbe5dec7fc19f2ad93d6ddf817a6901428de7fe5b1693b8952376"
+  },
+  {
+    "file": "Especificacao_Tecnica_Plataforma_Psicologia_v2.docx",
+    "bytes": 72423,
+    "charactersAnalyzed": 80698,
+    "sha256": "4fb760d2e79c7769f45181ae92765ac0c8b58f8747d0bca6574a22ab858885e3"
+  },
+  {
+    "file": "Especificacao_Tecnica_Plataforma_Psicologia_v2.md",
+    "bytes": 80069,
+    "charactersAnalyzed": 77579,
+    "sha256": "98a36ab9d730da23c40c49f8b2d05af45e5cc8b94efa27a025f1df0f517ac4f1"
+  },
+  {
+    "file": "IMPLEMENTACAO_GUIADA.md",
+    "bytes": 8880,
+    "charactersAnalyzed": 8563,
+    "sha256": "368d00306b738b47cbd97cdf603c5edc69d9f0bde200639bc8789a2155a0c258"
+  },
+  {
+    "file": "ops/OPERACAO.md",
+    "bytes": 5258,
+    "charactersAnalyzed": 5128,
+    "sha256": "16427bcf18574c43855ba9ba67bd24e957ca14cde8b431650cd4d288c7bbd3b0"
+  },
+  {
+    "file": "ops/VALIDACAO_ATUAL.md",
+    "bytes": 370,
+    "charactersAnalyzed": 360,
+    "sha256": "21a844f6397616478036d866c6b7f8563229ee210a4654b02c5ea95bdd001f07"
+  },
+  {
+    "file": "ops/VALIDACAO_ESPECIFICACAO_ORIGINAL.md",
+    "bytes": 1555,
+    "charactersAnalyzed": 1509,
+    "sha256": "37a9b3a9fa8b1addb55c2ee5b3e2a32af4a68d5ef16ca5e82e6ee83948eed410"
+  },
+  {
+    "file": "ops/VALIDACAO_IMPLEMENTACAO.md",
+    "bytes": 5468,
+    "charactersAnalyzed": 5272,
+    "sha256": "2629c23518a41bc8edf0d4c069e6b414a89ef75f59f75123acd4655a1ba58d26"
+  },
+  {
+    "file": "qa/ACEITE.md",
+    "bytes": 7536,
+    "charactersAnalyzed": 7352,
+    "sha256": "937e5b3e4895dd0031eb7057a682ac1e940ca709e9f3aa7938d229c3c7b584d4"
+  },
+  {
+    "file": "README.md",
+    "bytes": 5273,
+    "charactersAnalyzed": 5152,
+    "sha256": "4675d5878afb9de992e763c4cf9c613579d71c27f0e1e97f0f212781992f90c6"
+  },
+  {
+    "file": "SPECIFICACAO_TECNICA.md",
+    "bytes": 48122,
+    "charactersAnalyzed": 46594,
+    "sha256": "5b23a8b160729cadabb2223f54777388b567e0603136b0aa0127f50369fd3303"
+  }
+]

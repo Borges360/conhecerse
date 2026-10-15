@@ -1,0 +1,14 @@
+{
+  "name": "conhecerse", "version": "2.0.0", "private": true,
+  "packageManager": "pnpm@10.28.2",
+  "scripts": {
+    "dev": "pnpm --dir apps/web dev",
+    "build": "pnpm --dir apps/web build",
+    "typecheck": "pnpm --dir apps/web typecheck",
+    "test": "pnpm --dir apps/web test",
+    "test:e2e": "pnpm --dir apps/web test:e2e",
+    "test:oidc": "node qa/automation/oidc-flow.cjs && node qa/automation/vertical-flow.cjs",
+    "contracts": "python scripts/generate_contracts.py",
+    "check:contracts": "python scripts/generate_contracts.py --check"
+  }
+}

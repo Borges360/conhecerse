@@ -1,0 +1,110 @@
+{{- if and (eq .Values.environment "production") (not .Values.releaseApproved) -}}
+{{- fail "Produção exige todas as evidências de qa/ACEITE.md e releaseApproved=true após revisão humana." -}}
+{{- end -}}
+{{- $root := . -}}
+{{- $tag := required "Uma tag imutável de release é obrigatória" .Values.tag -}}
+{{- range $component := list "web" "api" "worker" "iam" "av" }}
+{{- $name := printf "%s-%s" $root.Release.Name $component }}
+{{- $image := ternary "api" $component (eq $component "worker") }}
+{{- $digest := index $root.Values.imageDigests $image | default "" }}
+{{- if and (eq $root.Values.environment "production") (not (regexMatch "^sha256:[a-f0-9]{64}$" $digest)) }}
+{{- fail (printf "Produção exige digest OCI imutável válido para %s após scan e assinatura." $image) }}
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels: {app: {{ $name }}, app.kubernetes.io/part-of: conhecerse, component: {{ $component }}}
+spec:
+  replicas: {{ index $root.Values.replicas $component }}
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels: {app: {{ $name }}}
+  template:
+    metadata:
+      labels: {app: {{ $name }}, app.kubernetes.io/part-of: conhecerse, component: {{ $component }}}
+    spec:
+      serviceAccountName: {{ $root.Release.Name }}
+      securityContext: {runAsNonRoot: true, fsGroup: 1001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: app
+          image: "{{ $root.Values.registry }}/conhecerse{{ if ne $image "web" }}-{{ $image }}{{ end }}{{ if $digest }}@{{ $digest }}{{ else }}:{{ $tag }}{{ end }}"
+          securityContext:
+            runAsUser: {{ ternary 1000 (ternary 100 1001 (eq $component "av")) (eq $component "iam") }}
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+          ports: [{name: http, containerPort: {{ ternary 3000 (ternary 3310 8080 (eq $component "av")) (eq $component "web") }}}]
+          {{- if ne $component "av" }}
+          envFrom: [{secretRef: {name: {{ index $root.Values.secrets (ternary "api" $component (eq $component "worker")) }}}}]
+          {{- end }}
+          env:
+            - {name: APP_ENV, value: {{ $root.Values.environment | quote }}}
+            {{- if eq $component "iam" }}
+            - {name: KC_HOSTNAME, value: {{ printf "https://%s" $root.Values.authHost | quote }}}
+            - {name: KC_HTTP_ENABLED, value: "true"}
+            - {name: KC_PROXY_HEADERS, value: xforwarded}
+            - {name: KC_HEALTH_ENABLED, value: "true"}
+            {{- end }}
+            {{- if or (eq $component "api") (eq $component "worker") }}
+            - {name: WORKER_ENABLED, value: {{ ternary "true" "false" (eq $component "worker") | quote }}}
+            - {name: BAO_TOKEN_FILE, value: /var/run/secrets/openbao/token}
+            - {name: ENCRYPTION_PROVIDER, value: openbao}
+            {{- end }}
+          resources: {{ index $root.Values.resources $component | toYaml | nindent 12 }}
+          startupProbe:
+            tcpSocket: {port: http}
+            periodSeconds: 10
+            failureThreshold: 60
+          readinessProbe:
+            {{- if eq $component "web" }}
+            httpGet: {path: /api/ready, port: http}
+            {{- else if or (eq $component "api") (eq $component "worker") }}
+            httpGet: {path: /actuator/health/readiness, port: http}
+            {{- else }}
+            tcpSocket: {port: http}
+            {{- end }}
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            tcpSocket: {port: http}
+            periodSeconds: 20
+          {{- if or (eq $component "api") (eq $component "worker") }}
+          volumeMounts: [{name: bao-token, mountPath: /var/run/secrets/openbao, readOnly: true}]
+        - name: bao-agent
+          image: {{ $root.Values.openbao.image | quote }}
+          args: [agent, -config=/bao/config/agent.hcl]
+          env: [{name: BAO_ADDR, value: {{ $root.Values.openbao.url | quote }}}]
+          securityContext: {runAsUser: 1001, allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+          resources: {requests: {cpu: 25m, memory: 64Mi}, limits: {memory: 128Mi}}
+          volumeMounts:
+            - {name: bao-token, mountPath: /var/run/secrets/openbao}
+            - {name: bao-config, mountPath: /bao/config, readOnly: true}
+            - {name: workload-jwt, mountPath: /var/run/secrets/workload, readOnly: true}
+      volumes:
+        - {name: bao-token, emptyDir: {medium: Memory}}
+        - {name: bao-config, configMap: {name: {{ $root.Release.Name }}-bao}}
+        - name: workload-jwt
+          projected:
+            sources:
+              - serviceAccountToken: {path: token, audience: {{ $root.Values.openbao.tokenAudience }}, expirationSeconds: 3600}
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels: {app: {{ $name }}, component: {{ $component }}}
+spec:
+  selector: {app: {{ $name }}}
+  ports: [{name: http, port: {{ ternary 3000 (ternary 3310 8080 (eq $component "av")) (eq $component "web") }}, targetPort: http}]
+{{- if and (ne $component "av") (ge (int (index $root.Values.replicas $component)) 2) }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: {name: {{ $name }}}
+spec:
+  minAvailable: 1
+  selector: {matchLabels: {app: {{ $name }}}}
+{{- end }}
+{{- end }}

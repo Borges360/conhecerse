@@ -1,0 +1,199 @@
+{
+  "recordedAt": "2026-10-14T04:06:17.730006+00:00",
+  "environment": "isolated localhost; synthetic data; real PostgreSQL 17.11 and Keycloak 26.8.1",
+  "releaseApproved": false,
+  "remoteDeploymentExecuted": false,
+  "backend": {
+    "tests": 97,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reports": [
+      {
+        "path": "backend/target/surefire-reports/TEST-com.psicocare.ApiIntegrationTest.xml",
+        "sha256": "3e49404ad22719e93edde89cb1464893e5f81384e9ab93b34dd8f8a69d652c4d",
+        "tests": 31,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "path": "backend/target/surefire-reports/TEST-com.psicocare.CriticalDomainTest.xml",
+        "sha256": "8c7a273cb03850cd1b62e4884275515628bcaefc2b29d3b5a86b7de0b614665a",
+        "tests": 30,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "path": "backend/target/surefire-reports/TEST-com.psicocare.DomainTest.xml",
+        "sha256": "23829be936f94e67601ffd0616c6cbfa7baf4b90c0e737b47ef067ae413a64bf",
+        "tests": 34,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "path": "backend/target/surefire-reports/TEST-com.psicocare.EventVersionTest.xml",
+        "sha256": "fc5732b422859d76f303757b99183ecde16c60d53653853652d0aa546c48c180",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "webUnit": {
+    "tests": 21,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reports": [
+      {
+        "path": "apps/web/test-results/unit.xml",
+        "sha256": "7724005c34afb18f7488a47674dbf98568530322fb3f4917188aa6d81ff64f95",
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "browser": {
+    "tests": 6,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reports": [
+      {
+        "path": "apps/web/test-results/e2e.xml",
+        "sha256": "7d43cf673baf438a67c777d13c1970310fe51eee2d211024fd58027ebba25a1b",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "criticalQuality": {
+    "scheduling/SchedulingModule": {
+      "coveredLines": 446,
+      "totalLines": 489,
+      "lineCoveragePercent": 91.21,
+      "mutations": 226,
+      "detected": 163,
+      "statuses": {
+        "KILLED": 163,
+        "SURVIVED": 43,
+        "NO_COVERAGE": 20
+      },
+      "mutationScorePercent": 72.12,
+      "passed": true
+    },
+    "billing/BillingModule": {
+      "coveredLines": 270,
+      "totalLines": 275,
+      "lineCoveragePercent": 98.18,
+      "mutations": 140,
+      "detected": 107,
+      "statuses": {
+        "SURVIVED": 32,
+        "KILLED": 107,
+        "NO_COVERAGE": 1
+      },
+      "mutationScorePercent": 76.43,
+      "passed": true
+    },
+    "clinical/ClinicalModule": {
+      "coveredLines": 108,
+      "totalLines": 108,
+      "lineCoveragePercent": 100.0,
+      "mutations": 44,
+      "detected": 41,
+      "statuses": {
+        "KILLED": 41,
+        "SURVIVED": 3
+      },
+      "mutationScorePercent": 93.18,
+      "passed": true
+    },
+    "shared/Access": {
+      "coveredLines": 34,
+      "totalLines": 35,
+      "lineCoveragePercent": 97.14,
+      "mutations": 25,
+      "detected": 25,
+      "statuses": {
+        "KILLED": 25
+      },
+      "mutationScorePercent": 100.0,
+      "passed": true
+    }
+  },
+  "qualityReportHashes": {
+    "jacoco": "fe572c7fe386c00013537abaf7580ea78274111da4282324b8852cc01cec8401",
+    "pit": "73f76b8dcd29ccb9d5dad8c2fc24f105689dd553124727c59f3e4918422834e0"
+  },
+  "journeys": {
+    "oidc": {
+      "keycloak": "26.8.1",
+      "authorizationCodePkce": true,
+      "mfaTotp": true,
+      "opaqueHttpOnlyCookie": true,
+      "organizationCreated": true,
+      "finishedAt": "2026-10-14T03:58:24.076Z"
+    },
+    "vertical": {
+      "oidc": "real Keycloak 26.8.1",
+      "database": "real PostgreSQL 17.11",
+      "bffCsrfDenied": true,
+      "professionalReviewed": true,
+      "patientCreated": true,
+      "appointmentScheduled": true,
+      "clinicalNoteSigned": true,
+      "manualInvoicePaid": true,
+      "publicContentReviewedPublished": true,
+      "finishedAt": "2026-10-14T03:58:25.221Z"
+    }
+  },
+  "securityScans": {
+    "source": {
+      "tool": "0.75.0",
+      "createdAt": "2026-10-14T00:58:23.7556069-03:00",
+      "highCriticalVulnerabilities": 0,
+      "highCriticalSecrets": 0,
+      "reportSha256": "425f4759405f024b787d13e60b67c20fe2af3081b613bbe1bbd33d2c64c7d33f"
+    },
+    "javaBase": {
+      "tool": "0.75.0",
+      "createdAt": "2026-10-14T00:05:02.7261442-03:00",
+      "highCriticalVulnerabilities": 0,
+      "highCriticalSecrets": 0,
+      "reportSha256": "9d68fef852bd1829589e3a59e755fd5a7b909f42e87b71ce9cff4d52cdfc4387"
+    },
+    "iamBase": {
+      "tool": "0.75.0",
+      "createdAt": "2026-10-14T00:13:29.0767631-03:00",
+      "highCriticalVulnerabilities": 0,
+      "highCriticalSecrets": 0,
+      "reportSha256": "a8badd364217fc471abf75e3f9ab79710a876c6dff217244270b940864279694"
+    },
+    "avBase": {
+      "tool": "0.75.0",
+      "createdAt": "2026-10-14T00:13:32.6188534-03:00",
+      "highCriticalVulnerabilities": 0,
+      "highCriticalSecrets": 0,
+      "reportSha256": "e491b30732bf9a47f054ddd6de05effe3c13cc5d899a462961ceab8e1c7c8eeb"
+    }
+  },
+  "limits": [
+    "Final container images were not built locally: Docker Engine unavailable; image scan/signing still required.",
+    "No real PSP, messaging, storage/AV, KMS or LiveKit provider homologation.",
+    "No load/soak, restore drill, independent pentest, full DLP or human accessibility approval.",
+    "Clinical, fiscal, legal and operational release approvals remain mandatory."
+  ],
+  "sourceSnapshot": {
+    "files": 159,
+    "sha256": "594c0e52b3d379c7ae059133cb31e4a9c3d7dd166c6d265124cb64047191add0"
+  }
+}

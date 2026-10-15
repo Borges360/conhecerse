@@ -1,0 +1,19 @@
+{
+  "recordedAt": "2026-10-14T10:10:24.997917+00:00",
+  "releaseApproved": false,
+  "realProviders": true,
+  "checks": {
+    "openbaoTenantEncryption": {
+      "passed": false,
+      "errorType": "FileNotFoundError"
+    },
+    "minioAnonymousBucketDenied": {
+      "passed": false,
+      "errorType": "HTTPError"
+    },
+    "clamavCleanAndEicar": {
+      "passed": false,
+      "errorType": "ConnectionRefusedError"
+    }
+  }
+}

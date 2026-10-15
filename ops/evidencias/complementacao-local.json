@@ -1,0 +1,221 @@
+{
+  "recordedAt": "2026-10-14T10:21:18.802867+00:00",
+  "issue": "ISSUE-PSC-017",
+  "releaseApproved": false,
+  "remoteDeploymentExecuted": false,
+  "contract": {
+    "operations": 159,
+    "schemas": 79,
+    "sha256": "ffcfea33989fa6f37dff4990224d9887dd127b1d06365653d66cf8a0bae77f0f"
+  },
+  "backend": {
+    "tests": 108,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reports": [
+      {
+        "path": "backend/target/surefire-reports/TEST-com.psicocare.ApiIntegrationTest.xml",
+        "sha256": "cd99328d6a01f0faf87563eee5c1a7becd157e50a56cf5d34247dcce3631c8ab",
+        "tests": 39,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "path": "backend/target/surefire-reports/TEST-com.psicocare.CriticalDomainTest.xml",
+        "sha256": "172909068e65a3d622f4ac0f16d954c403df8f5a4aee7980388a3e8c4279a6f2",
+        "tests": 30,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "path": "backend/target/surefire-reports/TEST-com.psicocare.DomainTest.xml",
+        "sha256": "2ed840d09b3384d70ba710723501932388d0e1d90cd7476c919f20a3f264adc7",
+        "tests": 34,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "path": "backend/target/surefire-reports/TEST-com.psicocare.EventVersionTest.xml",
+        "sha256": "0ad65ead3f09ef6da694904ec60d35d17788e01c811563d7b1e6758a710ddb1d",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "path": "backend/target/surefire-reports/TEST-com.psicocare.SignatureAndCallbackTest.xml",
+        "sha256": "dcf2ea1503eb8d4a2025354e2324f00c372752c27641eec76d57b68e5f5af2af",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "webUnit": {
+    "tests": 23,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reports": [
+      {
+        "path": "apps/web/test-results/unit.xml",
+        "sha256": "35b8a915355f5368507603e8f9684cb848eb53996963af568295c0e29f614580",
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "browser": {
+    "tests": 6,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "reports": [
+      {
+        "path": "apps/web/test-results/e2e.xml",
+        "sha256": "ea505446baa05f77d9d959469b76cfabda417fb907f1374ae82e684527030437",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "criticalQuality": {
+    "scheduling/SchedulingModule": {
+      "lineCoveragePercent": 90.47,
+      "mutationScorePercent": 71.72,
+      "passed": true
+    },
+    "billing/BillingModule": {
+      "lineCoveragePercent": 98.18,
+      "mutationScorePercent": 76.43,
+      "passed": true
+    },
+    "clinical/ClinicalModule": {
+      "lineCoveragePercent": 100.0,
+      "mutationScorePercent": 93.18,
+      "passed": true
+    },
+    "shared/Access": {
+      "lineCoveragePercent": 97.14,
+      "mutationScorePercent": 100.0,
+      "passed": true
+    }
+  },
+  "journeys": {
+    "oidc": {
+      "authorizationCodePkce": true,
+      "mfaTotp": true,
+      "opaqueHttpOnlyCookie": true,
+      "organizationCreated": true,
+      "finishedAt": "2026-10-14T09:58:15.202Z"
+    },
+    "completion": {
+      "recordedAt": "2026-10-14T10:10:07.897Z",
+      "realOidc": true,
+      "realPostgreSql": true,
+      "releaseApproved": false,
+      "registrationUi": true,
+      "profileUi": true,
+      "remoteProtocolUi": true,
+      "axeCriticalSerious": 0
+    }
+  },
+  "sca": {
+    "scope": "Maven dependencies resolved from backend/pom.xml; not final container images",
+    "reportSha256": "9820bc34cb74ab78900d9204b385ee4cc3c171117e874a7d634b204bd4e8b33d",
+    "packages": 147,
+    "highCritical": 0
+  },
+  "dlp": {
+    "recordedAt": "2026-10-14T10:19:41.806066+00:00",
+    "scope": "explicit technical logs only; not traces, metrics or final images",
+    "releaseApproved": false,
+    "results": [
+      {
+        "path": ".local/completion-api-final.log",
+        "sha256": "a0d914c9601a4f75c18ca0657a62de30e240e7a01d9abe22c6f2d98895688dd3",
+        "findings": {
+          "clinicalCanary": 0,
+          "bearerToken": 0,
+          "jwtToken": 0,
+          "privateKey": 0
+        },
+        "passed": true
+      },
+      {
+        "path": ".local/completion-iam.log",
+        "sha256": "92bf2ebd426991a0676700ecfa397a0610d1d3df729ddfb68c125d2604ea9df3",
+        "findings": {
+          "clinicalCanary": 0,
+          "bearerToken": 0,
+          "jwtToken": 0,
+          "privateKey": 0
+        },
+        "passed": true
+      },
+      {
+        "path": ".local/completion-web-v2.log",
+        "sha256": "13d4b8e01934769ef66d1eb34c43632b76687314c8c567797ca7858dbb6e6178",
+        "findings": {
+          "clinicalCanary": 0,
+          "bearerToken": 0,
+          "jwtToken": 0,
+          "privateKey": 0
+        },
+        "passed": true
+      },
+      {
+        "path": ".local/completion-final-offline-tests.log",
+        "sha256": "a2367f13af19ec8bc59072c0c5c2d5d0f28efdfb5e0e7260be3a00c3ee5a0ad3",
+        "findings": {
+          "clinicalCanary": 0,
+          "bearerToken": 0,
+          "jwtToken": 0,
+          "privateKey": 0
+        },
+        "passed": true
+      }
+    ],
+    "passed": true
+  },
+  "localProviders": {
+    "recordedAt": "2026-10-14T10:10:24.997917+00:00",
+    "releaseApproved": false,
+    "realProviders": true,
+    "checks": {
+      "openbaoTenantEncryption": {
+        "passed": false,
+        "errorType": "FileNotFoundError"
+      },
+      "minioAnonymousBucketDenied": {
+        "passed": false,
+        "errorType": "HTTPError"
+      },
+      "clamavCleanAndEicar": {
+        "passed": false,
+        "errorType": "ConnectionRefusedError"
+      }
+    }
+  },
+  "sourceSnapshot": {
+    "files": 159,
+    "sha256": "b17442ce5fbcbe38813f1c157de019c469e5ef55edc7eb371004a8ba4de131d7"
+  },
+  "pending": [
+    "Docker Engine did not respond; local MinIO/OpenBao/ClamAV real acceptance checks failed availability.",
+    "Asaas/LiveKit/Resend/WhatsApp credentials and real provider homologation deferred by user.",
+    "Clinical/legal/fiscal approvals, ICP-Brasil certificates, PDF/A and templates require responsible specialists.",
+    "No final image build/signing/deployment, load60m/soak24h, restore with objects/KMS, independent pentest or human accessibility approval.",
+    "DLP covers listed technical logs; full traces/metrics/images acceptance still required."
+  ],
+  "engineeringChecksPassed": true
+}

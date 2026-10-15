@@ -1,0 +1,6 @@
+apiVersion: v2
+name: conhecerse
+description: Plataforma modular de psicologia clínica — web, API, worker, IAM e antivírus
+type: application
+version: 2.0.0
+appVersion: 2.0.0

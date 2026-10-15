@@ -1,0 +1,20 @@
+#!/bin/bash
+set -eu
+install -d -m 0700 /etc/livekit
+aws secretsmanager get-secret-value --region sa-east-1 --secret-id '${secret_arn}' --query SecretString --output text > /etc/livekit/material.json
+python3 - <<'PY'
+import json,os,pathlib,yaml
+root=pathlib.Path('/etc/livekit');material=json.loads((root/'material.json').read_text())
+config=yaml.safe_load(material['config'])
+assert config.get('port')==7880 and config.get('room',{}).get('auto_create') is False
+assert config.get('redis',{}).get('use_tls') is True
+assert not config.get('egress') and not config.get('room',{}).get('enable_remote_unmute',False)
+assert config.get('turn',{}).get('enabled') is True and config['turn'].get('tls_port')==5349
+for filename,value in [('livekit.yaml',material['config']),('turn.crt',material['turnCertificate']),('turn.key',material['turnPrivateKey'])]:
+    p=root/filename;p.write_text(value);os.chmod(p,0o600);os.chown(p,1001,1001)
+(root/'material.json').unlink()
+os.chown(root,1001,1001)
+PY
+# TLS signaling terminates at the ALB; TURN/TLS terminates on each public node.
+# The hardened AMI must include Docker, AWS CLI, Python3/PyYAML and SSM.
+docker run --detach --restart unless-stopped --name livekit --network host --user 1001:1001 --cap-drop ALL --security-opt no-new-privileges --read-only --tmpfs /tmp -v /etc/livekit:/etc/livekit:ro livekit/livekit-server:v1.13.9@sha256:d0c04791bf63ca8dcea123571827d56ba9504bd57c8d5de60ee03b5408cc3154 --config /etc/livekit/livekit.yaml
