@@ -1,3 +1,23 @@
+import { localToInstant } from "./timezone";
+
+const demoTimeZone = "America/Sao_Paulo";
+function localDateKey(value = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: demoTimeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(value);
+  const part = (type: string) => parts.find((item) => item.type === type)!.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+function shiftDate(value: string, days: number) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days))
+    .toISOString()
+    .slice(0, 10);
+}
+
 // Synthetic fixtures are restricted to /demonstracao. They never enter the API or production storage.
 const patient = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -47,20 +67,24 @@ export const demoProfessional = {
   version: 1,
 };
 export function demoAppointments() {
-  const base = new Date();
-  base.setHours(0, 0, 0, 0);
-  const monday = new Date(base);
-  monday.setDate(base.getDate() - ((base.getDay() + 6) % 7));
+  const today = localDateKey();
+  const [year, month, day] = today.split("-").map(Number);
+  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  const monday = shiftDate(today, -((weekday + 6) % 7));
   return Array.from({ length: 14 }, (_, i) => {
-    const start = new Date(monday);
-    start.setDate(monday.getDate() + (i % 5));
-    start.setHours(9 + Math.floor(i / 5) * 3 + (i % 2), i % 2 === 0 ? 0 : 30);
+    const date = shiftDate(monday, i % 5);
+    const hour = 9 + Math.floor(i / 5) * 3 + (i % 2);
+    const minute = i % 2 === 0 ? 0 : 30;
+    const startAt = localToInstant(
+      `${date}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+      demoTimeZone,
+    );
     return {
       id: patient(100 + i),
       patientId: demoPatients[i % 5].id,
       professionalId: patient(90),
-      startAt: start.toISOString(),
-      endAt: new Date(start.getTime() + 50 * 60000).toISOString(),
+      startAt,
+      endAt: new Date(Date.parse(startAt) + 50 * 60000).toISOString(),
       modality: i % 4 === 0 ? "IN_PERSON" : "REMOTE",
       status: i % 4 === 0 ? "SCHEDULED" : "CONFIRMED",
       priceCents: 18000,
@@ -73,7 +97,7 @@ export const demoInvoices = demoPatients.slice(0, 4).map((p, i) => ({
   payerId: p.id,
   amountCents: 18000,
   paidCents: i < 2 ? 18000 : 0,
-  dueOn: new Date().toISOString().slice(0, 10),
+  dueOn: localDateKey(),
   status: i < 2 ? "PAID" : "OPEN",
   version: 1,
 }));

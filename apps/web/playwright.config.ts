@@ -37,7 +37,7 @@ export default defineConfig({
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {
-        command: "pnpm exec next start --hostname 127.0.0.1 --port 3017",
+        command: "node scripts/start-playwright-server.cjs",
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 60000,

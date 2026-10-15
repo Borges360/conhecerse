@@ -49,8 +49,6 @@ import { checksum } from "@/lib/browser-crypto";
 import { request, ApiError } from "@/lib/api.generated";
 import {
   demoPatients,
-  demoAppointments,
-  demoInvoices,
   demoProfessional,
 } from "@/lib/demo";
 import { localToInstant, moneyToCents } from "@/lib/timezone";
@@ -157,21 +155,25 @@ export function Workspace({
   demo = false,
   name,
   patientId,
+  seededDemoAppointments = [],
+  seededDemoInvoices = [],
 }: {
   orgId: string;
   section: string;
   demo?: boolean;
   name?: string;
   patientId?: string;
+  seededDemoAppointments?: Row[];
+  seededDemoInvoices?: Row[];
 }) {
   const [patients, setPatients] = useState<Row[]>(demo ? demoPatients : []),
     [appointments, setAppointments] = useState<Row[]>(
-      demo ? demoAppointments() : [],
+      demo ? seededDemoAppointments : [],
     ),
     [professionals, setProfessionals] = useState<Row[]>(
       demo ? [demoProfessional] : [],
     ),
-    [invoices, setInvoices] = useState<Row[]>(demo ? demoInvoices : []),
+    [invoices, setInvoices] = useState<Row[]>(demo ? seededDemoInvoices : []),
     [rows, setRows] = useState<Row[]>([]),
     [payers, setPayers] = useState<Row[]>([]),
     [organization, setOrganization] = useState<Row | null>(null),
