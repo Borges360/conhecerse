@@ -183,8 +183,8 @@ pipeline {
             export TEST_PG_ADMIN_USER=postgres
             export TEST_PG_ADMIN_PASSWORD=synthetic_ci_only
             cd backend
-            chmod +x mvnw
-            ./mvnw -B -q -Dmaven.repo.local=/maven-cache/.m2/repository -Prelease-gates verify
+            mvn -v
+            mvn -B -q -Dmaven.repo.local=/maven-cache/.m2/repository -Prelease-gates verify
           '''}
           container('contracts') {sh '/tmp/contracts/bin/python scripts/check-critical-quality.py'}
           container('trivy') {sh '''
