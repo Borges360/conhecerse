@@ -112,6 +112,27 @@ spec:
       resources:
         limits: {memory: 512Mi}
 '''
+
+def DAST_POD = '''
+apiVersion: v1
+kind: Pod
+spec:
+  securityContext: {fsGroup: 1000}
+  hostAliases:
+    - ip: 10.43.41.43
+      hostnames: [conhecerse.lab, conhecerse-auth.lab]
+  containers:
+    - name: zap
+      image: ghcr.io/zaproxy/zaproxy:stable@sha256:5ccfff9a411743ab2615136a2edd7416bec9ce41572fa94e935df38c14adb2b6
+      command: [sleep]
+      args: [infinity]
+      resources:
+        requests: {cpu: 250m, memory: 512Mi}
+        limits: {memory: 1536Mi}
+    - name: jnlp
+      resources:
+        limits: {memory: 512Mi}
+'''
 pipeline {
   agent none
   options {timestamps(); ansiColor('xterm'); disableConcurrentBuilds(); buildDiscarder(logRotator(numToKeepStr:'20')); timeout(time:60,unit:'MINUTES')}
@@ -240,6 +261,18 @@ spec:
         code="$(curl -sS -o /dev/null -w '%{http_code}' -H 'Host: conhecerse.lab' http://conhecerse.dev.svc.cluster.local:3000/api/ready)"
         [ "$code" = "200" ]
       '''}}}}}}
+    }
+    stage('DAST baseline passivo') {
+      when {expression {return !params.DRY_RUN}}
+      steps {script {podTemplate(yaml:DAST_POD){node(POD_LABEL){container('zap'){sh '''
+        set +e
+        zap-baseline.py -t http://conhecerse.lab -m 1 -T 5 -r zap-baseline.html -J zap-baseline.json
+        result=$?
+        set -e
+        [ -s zap-baseline.html ] && [ -s zap-baseline.json ] || exit 3
+        if [ "$result" -eq 1 ] || [ "$result" -gt 2 ]; then exit "$result"; fi
+        if [ "$result" -eq 2 ]; then echo 'ZAP passive warnings recorded; review required before production.'; fi
+      '''};archiveArtifacts artifacts:'zap-baseline.html,zap-baseline.json',allowEmptyArchive:false}}}}
     }
   }
 }
