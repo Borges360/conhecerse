@@ -75,7 +75,7 @@ export function configuration() {
     throw new Error("SECURE_SESSION_REQUIRED");
   if (issuer.protocol !== "https:" && process.env.APP_ENV === "production")
     throw new Error("OIDC_TLS_REQUIRED");
-  configPromise ??= oidc.discovery(
+  const pending = (configPromise ??= oidc.discovery(
     issuer,
     process.env.OIDC_CLIENT_ID,
     process.env.OIDC_CLIENT_SECRET,
@@ -83,8 +83,11 @@ export function configuration() {
     issuer.protocol === "http:"
       ? { execute: [oidc.allowInsecureRequests] }
       : undefined,
-  );
-  return configPromise;
+  ));
+  return pending.catch((error) => {
+    if (configPromise === pending) configPromise = undefined;
+    throw error;
+  });
 }
 export async function session(): Promise<Session | null> {
   const jar = await cookies();
