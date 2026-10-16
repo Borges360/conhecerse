@@ -13,6 +13,13 @@ spec:
       resources:
         requests: {cpu: 200m, memory: 256Mi}
         limits: {memory: 1024Mi}
+    - name: contracts
+      image: python:3.13-slim-bookworm@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641
+      command: [sleep]
+      args: [infinity]
+      resources:
+        requests: {cpu: 50m, memory: 128Mi}
+        limits: {memory: 512Mi}
     - name: maven
       image: maven:3.9.16-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320
       command: [sleep]
@@ -154,10 +161,16 @@ pipeline {
             corepack enable
             corepack prepare pnpm@10.28.2 --activate
             pnpm install --frozen-lockfile
-            python3 -m venv /tmp/contracts
+          '''}
+          container('contracts') {sh '''
+            set -eu
+            python -m venv /tmp/contracts
             /tmp/contracts/bin/pip install --disable-pip-version-check PyYAML==6.0.3
             /tmp/contracts/bin/python scripts/generate_contracts.py --check
             /tmp/contracts/bin/python scripts/generate_events.py --check
+          '''}
+          container('node') {sh '''
+            set -eu
             pnpm typecheck
             pnpm test
             NODE_OPTIONS=--max-old-space-size=768 pnpm build
@@ -173,7 +186,7 @@ pipeline {
             chmod +x mvnw
             ./mvnw -B -q -Dmaven.repo.local=/maven-cache/.m2/repository -Prelease-gates verify
           '''}
-          container('node') {sh '/tmp/contracts/bin/python scripts/check-critical-quality.py'}
+          container('contracts') {sh '/tmp/contracts/bin/python scripts/check-critical-quality.py'}
           container('trivy') {sh '''
             set -eu
             trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --skip-dirs .git,node_modules,apps/web/.next,backend .
