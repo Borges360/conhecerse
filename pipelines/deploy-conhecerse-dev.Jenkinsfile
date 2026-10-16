@@ -211,6 +211,7 @@ spec:
   containers:
     - name: migrate
       image: ${REGISTRY}/conhecerse-api:${env.IMAGE_TAG}
+      securityContext: {runAsNonRoot: true, runAsUser: 1000, runAsGroup: 1000}
       command: [sleep]
       args: [infinity]
       envFrom: [{secretRef: {name: conhecerse-dev-db}}]
