@@ -155,9 +155,9 @@ pipeline {
           container('node') {sh '/tmp/contracts/bin/python scripts/check-critical-quality.py'}
           container('trivy') {sh '''
             set -eu
-            trivy fs --offline-scan --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --skip-dirs node_modules,.next apps/web
+            trivy fs --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --skip-dirs .git,node_modules,apps/web/.next,backend .
             HOME=/maven-cache trivy sbom --offline-scan --scanners vuln --severity HIGH,CRITICAL --exit-code 1 backend/target/bom.json
-            trivy fs --scanners secret --severity HIGH,CRITICAL --exit-code 1 --skip-dirs .git,node_modules,apps/web/.next,backend/target .
+            HOME=/maven-cache trivy fs --offline-scan --scanners secret --severity HIGH,CRITICAL --exit-code 1 --skip-dirs .git,node_modules,apps/web/.next,backend/target .
             trivy fs --offline-scan --format cyclonedx --output sbom-web.cdx.json --skip-dirs node_modules,.next apps/web
             cp backend/target/bom.json sbom-java.cdx.json
           '''}
