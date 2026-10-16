@@ -133,12 +133,17 @@ spec:
       image: ghcr.io/zaproxy/zaproxy:stable@sha256:5ccfff9a411743ab2615136a2edd7416bec9ce41572fa94e935df38c14adb2b6
       command: [sleep]
       args: [infinity]
+      volumeMounts:
+        - {name: zap-wrk, mountPath: /zap/wrk}
       resources:
         requests: {cpu: 250m, memory: 512Mi}
         limits: {memory: 1536Mi}
     - name: jnlp
       resources:
         limits: {memory: 512Mi}
+  volumes:
+    - name: zap-wrk
+      emptyDir: {}
 '''
 pipeline {
   agent none
@@ -279,9 +284,11 @@ spec:
       when {expression {return !params.DRY_RUN}}
       steps {script {podTemplate(yaml:DAST_POD){node(POD_LABEL){container('zap'){sh '''
         set +e
-        zap-baseline.py -t http://conhecerse.lab -m 1 -T 5 -r zap-baseline.html -J zap-baseline.json
+        zap-baseline.py -t http://conhecerse.lab -m 1 -T 5 -r /zap/wrk/zap-baseline.html -J /zap/wrk/zap-baseline.json
         result=$?
         set -e
+        cp /zap/wrk/zap-baseline.html zap-baseline.html
+        cp /zap/wrk/zap-baseline.json zap-baseline.json
         [ -s zap-baseline.html ] && [ -s zap-baseline.json ] || exit 3
         if [ "$result" -eq 1 ] || [ "$result" -gt 2 ]; then exit "$result"; fi
         if [ "$result" -eq 2 ]; then echo 'ZAP passive warnings recorded; review required before production.'; fi
