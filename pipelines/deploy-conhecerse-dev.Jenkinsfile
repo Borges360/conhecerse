@@ -16,6 +16,8 @@ spec:
     - name: maven
       image: maven:3.9.16-eclipse-temurin-21@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320
       command: [sleep]
+      volumeMounts:
+        - {name: maven-cache, mountPath: /maven-cache}
       args: [infinity]
       resources:
         requests: {cpu: 200m, memory: 256Mi}
@@ -31,6 +33,8 @@ spec:
     - name: trivy
       image: aquasec/trivy:0.75.0@sha256:af6acf9a6b85dfe389a1941505c0ce9efef52a4719635e1a962f022a3d855daa
       command: [sleep]
+      volumeMounts:
+        - {name: maven-cache, mountPath: /maven-cache}
       args: [infinity]
       resources:
         requests: {cpu: 100m, memory: 64Mi}
@@ -39,6 +43,9 @@ spec:
       resources:
         requests: {cpu: 100m, memory: 256Mi}
         limits: {memory: 512Mi}
+  volumes:
+    - name: maven-cache
+      emptyDir: {}
 '''
 def BUILD_POD = '''
 apiVersion: v1
@@ -143,17 +150,20 @@ pipeline {
             export TEST_PG_ADMIN_PASSWORD=synthetic_ci_only
             cd backend
             chmod +x mvnw
-            ./mvnw -B -q -Prelease-gates verify
+            ./mvnw -B -q -Dmaven.repo.local=/maven-cache/.m2/repository -Prelease-gates verify
           '''}
           container('node') {sh '/tmp/contracts/bin/python scripts/check-critical-quality.py'}
           container('trivy') {sh '''
             set -eu
-            trivy fs --scanners vuln,secret --severity HIGH,CRITICAL --exit-code 1 --skip-dirs .git,node_modules,apps/web/.next .
-            trivy fs --format cyclonedx --output sbom.cdx.json --skip-dirs .git,node_modules,apps/web/.next .
+            trivy fs --offline-scan --scanners vuln --severity HIGH,CRITICAL --exit-code 1 --skip-dirs .git,node_modules,apps/web/.next apps/web
+            HOME=/maven-cache trivy sbom --offline-scan --scanners vuln --severity HIGH,CRITICAL --exit-code 1 backend/target/bom.json
+            trivy fs --scanners secret --severity HIGH,CRITICAL --exit-code 1 --skip-dirs .git,node_modules,apps/web/.next,backend/target .
+            trivy fs --offline-scan --format cyclonedx --output sbom-web.cdx.json --skip-dirs node_modules,.next apps/web
+            cp backend/target/bom.json sbom-java.cdx.json
           '''}
         }
         stash(name:'source',includes:'**',excludes:'**/node_modules/**,**/.next/**,**/target/**,.local/**,**/test-results/**,**/playwright-report/**')
-        if(!params.SKIP_TEST){junit testResults:'backend/target/surefire-reports/*.xml,apps/web/test-results/*.xml';archiveArtifacts artifacts:'sbom.cdx.json,apps/web/test-results/*.png,backend/target/site/jacoco/**,backend/target/pit-reports/**',allowEmptyArchive:false}
+        if(!params.SKIP_TEST){junit testResults:'backend/target/surefire-reports/*.xml,apps/web/test-results/*.xml';archiveArtifacts artifacts:'sbom-java.cdx.json,sbom-web.cdx.json,apps/web/test-results/*.png,backend/target/site/jacoco/**,backend/target/pit-reports/**',allowEmptyArchive:false}
       }}}}}
     }
     stage('BuildKit rootless') {
