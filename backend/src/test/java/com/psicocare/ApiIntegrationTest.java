@@ -1963,6 +1963,76 @@ class ApiIntegrationTest {
     }
 
     @Test
+    void PAT_guardianCanReadInvoicesOnlyWithCurrentBillingScope() throws Exception {
+        String guardian = "guardian-billing-" + UUID.randomUUID();
+        UUID uid = register(guardian);
+        call(
+                post(base() + "/patients/" + patient + "/guardians"),
+                object(
+                        "guardianUserId",
+                        uid,
+                        "relationship",
+                        "SYNTHETIC_BILLING_GUARDIAN",
+                        "accessScope",
+                        List.of("SCHEDULE", "BILLING"),
+                        "evidence",
+                        "SYNTHETIC_BILLING_SCOPE_ONLY"),
+                subject,
+                201);
+        var payer =
+                call(
+                        post(base() + "/payers"),
+                        object(
+                                "fullName",
+                                "Pagador sintético",
+                                "type",
+                                "PF",
+                                "patientId",
+                                patient),
+                        subject,
+                        201);
+        var invoice =
+                call(
+                        post(base() + "/invoices"),
+                        object(
+                                "payerId",
+                                payer.path("id").asText(),
+                                "dueOn",
+                                LocalDate.now().plusDays(1).toString(),
+                                "items",
+                                List.of(
+                                        object(
+                                                "descriptionCode",
+                                                "SYNTHETIC_SESSION",
+                                                "amountCents",
+                                                1000))),
+                        subject,
+                        201);
+        String invoicePath = base() + "/invoices/" + invoice.path("id").asText();
+        assertEquals(
+                invoice.path("id").asText(),
+                call(get(base() + "/portal/invoices"), null, guardian, 200)
+                        .path("items")
+                        .get(0)
+                        .path("id")
+                        .asText());
+        call(get(invoicePath), null, guardian, 200);
+        admin(
+                "update app.guardian_patient_access set access_scope=ARRAY['SCHEDULE'] where"
+                        + " guardian_user_id='"
+                        + uid
+                        + "' and tenant_id='"
+                        + tenant
+                        + "'");
+        assertEquals(
+                0,
+                call(get(base() + "/portal/invoices"), null, guardian, 200)
+                        .path("items")
+                        .size());
+        call(get(invoicePath), null, guardian, 404);
+    }
+
+    @Test
     void PAT_portalCanReadOwnInvoiceAndWithdrawMarketing() throws Exception {
         String patientSub = "portal-" + UUID.randomUUID();
         UUID uid = register(patientSub);
