@@ -56,7 +56,7 @@ python scripts/check-infra.py
 python scripts/prepare_lab.py --lab C:\Users\felip\Desenvolvimento\jenkies
 ```
 
-Esses comandos somente preparam/validam arquivos. Publicação e primeiro build são passos separados do operador. O repositório remoto precisa receber o código antes do checkout do Jenkins. Os comandos de publicação e pré-requisitos estão no [runbook](docs/OPERACAO_IMPLEMENTACAO.md).
+Esses comandos somente preparam/validam arquivos. O código já foi publicado e o primeiro build/deploy de laboratório foi concluído pelo Jenkins #24; o estado atual e os limites estão no [runbook](docs/OPERACAO_IMPLEMENTACAO.md) e na [evidência da release 24](ops/evidencias/dev-lab-2026-10-17-release-24.json). A aplicação permanece somente no laboratório, com `releaseApproved=false`; publicação de novas releases e qualquer apply de infraestrutura seguem o fluxo operacional explícito, nunca `kubectl apply` direto dos manifestos.
 
 Produção: `infra/opentofu` provisiona RDS privado Multi-AZ, buckets privados/KMS, backup com object lock, Redis HA e dois nós LiveKit com ALB/TLS e TURN/TLS. O chart `infra/helm/conhecerse` inclui probes, políticas de rede, PDB, métricas e autenticação do OpenBao por workload. Valores de rede, DNS, certificados, AMI, segredos e evidências são entradas obrigatórias; nenhum apply foi executado.
 

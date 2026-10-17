@@ -14,24 +14,24 @@ Arquivos preparados em `C:\Users\felip\Desenvolvimento\jenkies`, somente nas ár
 | IAM | `conhecerse-iam:8080` | 512 MiB |
 | ClamAV | `conhecerse-av:3310` | 2048 MiB |
 
-Total 3840 MiB. A capacidade efetiva do K3s ainda precisa ser medida; os tetos declarados de outras aplicações não demonstram folga. O Jenkins exige 3840 MiB +1024 MiB de margem além de 2 GiB de reserva do host, consultados no Prometheus antes de migrar. Não aumenta `memory_mb` da VM.
+**Estado conferido em 17/10/2026:** Jenkins #24 aprovou o commit `8661385f5f58fdef442337874e70d4160dd05c7c`, tag `24-8661385`. A esteira validou secret scan Trivy offline, SBOM/SCA e as quatro imagens finais, gate de capacidade preflight, 13 migrações Flyway e rollout dos cinco Deployments. Web, API, worker, IAM e antivírus estão em 1/1; `/` e `/api/ready` respondem 200. O GitOps está `Synced` na revisão `0085c225113760c1b0a8d7c986845c42c051b27b`; a saúde agregada `Degraded` é causada por `publishsys` e `sistemalux`, fora desta aplicação. Consulte [IMPLEMENTACAO_PENDENCIAS.md](IMPLEMENTACAO_PENDENCIAS.md) e a [evidência release24](../ops/evidencias/dev-lab-2026-10-17-release-24.json).
 
-Antes do primeiro build: publicar o código no GitHub; provisionar PostgreSQL com os quatro papéis separados; configurar SMTP no Keycloak; criar chave transit `conhecerse` AES-GCM derivada por contexto de tenant e chave HMAC `conhecerse-video`; conceder token limitado/renovável ao workload; configurar bucket privado, CORS para o frontend, credencial S3 restrita e assinaturas do ClamAV. Os campos vazios de OpenBao/S3 não foram substituídos por segredos de demonstração.
+O total de 3840 MiB é o teto declarado dos cinco workloads. O gate da pipeline é um preflight de capacidade e não mede o aceite de 100 req/s por 60 minutos nem soak de 24 horas. A regra exige 3840 MiB +1024 MiB de margem além de 2 GiB de reserva do host, consultados no Prometheus antes de migrar. Não aumentar `memory_mb` da VM como substituto da medição.
 
-O QUICKSTART determina: **“Publicar no cluster (...) só quando a mensagem atual do operador pedir isso com verbo explícito.”** Portanto os passos abaixo estão documentados, não executados. A partir da raiz de `jenkies`, após esse pedido e revisão das credenciais:
+O provisionamento de PostgreSQL, bucket privado, permissões MinIO, chaves Transit e ClamAV foi exercitado no laboratório. Na release24, upload, descriptografia, checksum, negações anônimas/entre tenants, expiração de ticket, EICAR e falha fechada/recuperação do ClamAV passaram com dados sintéticos. O workload ainda usa token OpenBao estático em Kubernetes Secret, sem auto-auth/renovação automática configurada; indisponibilidade/recuperação do OpenBao, revogação, rotação e restore com descriptografia permanecem pendentes. SMTP do Keycloak também não foi homologado. Os segredos de provedores externos continuam ausentes até o cadastro autorizado.
+
+O pedido explícito do usuário autorizou o primeiro deploy de laboratório; esse deploy foi executado e está comprovado pela release24. Para alterações futuras, usar o job e a publicação GitOps oficiais após autorização aplicável. Não aplicar `infra/k3s/dev` diretamente com `kubectl`.
 
 ```powershell
-.\infra\bin\ansible.ps1 ansible-playbook site.yml --tags conhecerse --limit db01 --check
-# Executar o apply Ansible com a mesma tag após conferir o check, conforme a interface do wrapper local.
-.\infra\bin\k3s-apply.ps1 -Only secrets
-.\infra\bin\k3s-apply.ps1 -Only jenkins
-.\infra\bin\gitops-publish.ps1 -Message "Conhecer-se no namespace dev"
-.\infra\bin\jenkins-publish.ps1 -Message "Pipeline conhecerse-dev"
+.\infra\bin\gitops-publish.ps1 -Message "Atualizar Conhecer-se no namespace dev" -Paths "infra/k3s/dev/conhecerse.yaml"
+# Em seguida, executar conhecerse-dev pelo fluxo Jenkins autorizado e conferir a revisão Argo.
 ```
 
-O primeiro build é do operador: `BRANCH=main`, `SKIP_TEST=false`; `DRY_RUN=true` testa e constrói sem push/migração/deploy. O build de implantação usa `DRY_RUN=false`. Não aplicar a pasta `infra/k3s/dev` diretamente com kubectl. Validar probes, GitOps, OIDC, `/api/ready`, AV e KMS antes de atualizar `ESTADO.md`.
+O Jenkins #24 usou `SKIP_TEST=false` e concluiu a implantação. O DAST passivo não autenticado terminou sem falhas bloqueantes, mas deixou 10 categorias de avisos para revisão contextual; isso não é DAST autenticado, ASVS ou pentest. O gate de capacidade aprovado não substitui os testes de carga especificados. Nunca atualizar o estado do operador ou declarar aceite sem evidência vinculada ao commit/tag; `releaseApproved=false` permanece.
 
 A URL de intranet do laboratório é `http://conhecerse.lab`; a autenticação do Keycloak fica sob `/auth` na mesma origem. É exclusiva de desenvolvimento com dados sintéticos. Produção exige TLS e cookies Secure. Se vídeo for habilitado, configurar também `LIVEKIT_URL` no BFF para a CSP e no backend para o adaptador.
+
+Na medição de 17/10, os cinco pods agendados no nó `k3s01` estavam 60 segundos atrasados em relação ao runner. O TOTP de QA foi calculado com esse desvio; revisar a sincronização NTP do nó antes de aceitar MFA e expiração de sessão em condições reais.
 
 ## Produção declarativa
 

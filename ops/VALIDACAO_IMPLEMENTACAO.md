@@ -1,5 +1,7 @@
 # Validação da implementação — 14/10/2026
 
+> **Registro histórico:** este documento descreve a verificação local e o estado conhecido em 14/10/2026; a afirmação abaixo de que não havia push/deploy era correta naquele corte. O laboratório recebeu deploy posterior: Jenkins #24, commit `8661385`, tag `24-8661385`, com evidência em [dev-lab-2026-10-17-release-24.json](evidencias/dev-lab-2026-10-17-release-24.json). Para o estado corrente, consulte [IMPLEMENTACAO_PENDENCIAS.md](../docs/IMPLEMENTACAO_PENDENCIAS.md). Produção continua sem aprovação.
+
 **Complementação:** [implementação das lacunas](../docs/IMPLEMENTACAO_PENDENCIAS.md). A seção abaixo preserva a execução anterior (97 testes/122 operações). A execução complementar tem contrato ampliado e evidência própria em `evidencias/complementacao-local.json`. Credenciais dos demais provedores serão cadastradas depois pelo usuário; isso não abre gates de produção.
 
 **Estado: implementação local e infraestrutura preparadas; produção não liberada.** A evidência local reproduzível está em `evidencias/validacao-local.json`. Os cenários e limites estão em `../docs/RASTREABILIDADE.md`; o aceite normativo permanece em `../qa/ACEITE.md`.
