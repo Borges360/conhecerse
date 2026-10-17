@@ -1,0 +1,160 @@
+{
+  "recordedAt": "2026-10-17T00:44:33.9001370-03:00",
+  "localDate": "2026-10-17",
+  "timezone": "America/Sao_Paulo",
+  "target": "dev lab",
+  "releaseApproved": false,
+  "source": {
+    "commit": "5044d47c3349ec4d37ab290af25b31bdf831bdac",
+    "jenkinsBuild": 18,
+    "jenkinsResult": "SUCCESS",
+    "imageTag": "18-5044d47",
+    "images": {
+      "web": "registry.platform.svc.cluster.local:5000/conhecerse:18-5044d47",
+      "api": "registry.platform.svc.cluster.local:5000/conhecerse-api:18-5044d47",
+      "worker": "registry.platform.svc.cluster.local:5000/conhecerse-api:18-5044d47",
+      "iam": "registry.platform.svc.cluster.local:5000/conhecerse-iam:18-5044d47",
+      "antivirus": "registry.platform.svc.cluster.local:5000/conhecerse-av:18-5044d47"
+    },
+    "stages": {
+      "checkoutQuality": "SUCCESS",
+      "buildAndPublishImages": "SUCCESS; four images: web, API/worker, IAM, antivirus",
+      "finalImageScaAndSbom": "SUCCESS; Trivy vulnerability and secret scans plus CycloneDX SBOM for web, API, IAM, antivirus; scan JSONs contained zero vulnerabilities and zero secrets",
+      "sourceSecretScan": "SUCCESS; scanned repository with only .git, node_modules, apps/web/.next and backend/target excluded; final-image secret scan ran for all four images",
+      "capacityGate": "SUCCESS; pre-migration capacity gate only, not a 60-minute load test or 24-hour soak",
+      "flyway": "SUCCESS",
+      "devRollout": "SUCCESS; five Deployments 1/1 and /api/ready HTTP 200",
+      "dastPassiveBaseline": "SUCCESS; 13 passive alert types recorded; manual review remains required before production"
+    },
+    "applicationCodeDelta": "No backend, API or antivirus application source changed from release 17; release 18 updates the Keycloak login theme and QA/evidence files"
+  },
+  "gitops": {
+    "repository": "homelab/infra",
+    "path": "infra/k3s/dev/conhecerse.yaml",
+    "commit": "2ae29656c105566000619d1bdc5472e607a806d0",
+    "argoRevision": "2ae29656c105566000619d1bdc5472e607a806d0",
+    "sync": "Synced",
+    "health": "Degraded; only unrelated publishsys and sistemalux Deployments are unready"
+  },
+  "cluster": {
+    "deploymentsReady": "5/5 at 1/1",
+    "apiReadyHttp": 200,
+    "oidcDiscoveryHttp": 200,
+    "oidcIssuer": "http://conhecerse.lab/auth/realms/conhecerse",
+    "loginHost": "conhecerse.lab",
+    "loginPath": "/auth",
+    "separateAuthIngressPresent": false,
+    "roles": {
+      "web": "1/1",
+      "api": "1/1",
+      "worker": "1/1",
+      "iam": "1/1",
+      "antivirus": "1/1"
+    },
+    "currentLoginRedirectOrigin": "http://conhecerse.lab",
+    "legacyAuthHost": "conhecerse-auth.lab",
+    "legacyAuthIngressPresent": false,
+    "legacyAuthHostHttp": 404,
+    "loginTheme": {
+      "source": "infra/keycloak/themes/conhecerse/login/resources/css/login.css",
+      "deployed": true,
+      "resourceHttp": 200,
+      "visualReview": "Matched the application split layout, navy/paper palette, PG monogram, dandelion mark, Playfair Display and Montserrat; desktop 1440x900 and mobile 390x844 reviewed"
+    }
+  },
+  "qaAccounts": {
+    "count": 6,
+    "syntheticOnly": true,
+    "keycloakTotpLogin": "6/6 in prior lab validation; admin TOTP login reauthenticated in release 18",
+    "opaqueHttpOnlySessions": "6/6",
+    "organizationCounts": {
+      "admin": 13,
+      "professional": 0,
+      "secretary": 0,
+      "finance": 0,
+      "patient": 0,
+      "guardian": 0
+    },
+    "roleWorkflows": "not validated; non-admin accounts lack organization memberships and invite delivery needs Resend/email configuration",
+    "windowsClock": {
+      "synchronized": false,
+      "localClockAheadOfPublicTimeSeconds": 60,
+      "evidence": "w32tm reports free-running clock; time.windows.com, time.google.com, time.cloudflare.com, pool.ntp.org and HTTPS Date headers show approximately 60s offset",
+      "qaTotpCorrectionSeconds": -60,
+      "clusterClockChanged": false
+    },
+    "adminOrganizationCountRelease18": 13
+  },
+  "storage": {
+    "providerPath": "MinIO + OpenBao Transit + application ClamAV",
+    "uploadValidated": true,
+    "encryptedStorageAndDecrypt": true,
+    "downloadChecksum": true,
+    "anonymousDownloadDenied": true,
+    "crossOrganizationDownloadDenied": true,
+    "singleUseEnforced": true,
+    "ttl60SecondsEnforced": true,
+    "eicarRejected": true,
+    "rejectedFileDownloadDenied": true,
+    "avOutageRecovery": {
+      "injected": true,
+      "failureHttp": 503,
+      "failureCode": "MALWARE_SCANNER_UNAVAILABLE",
+      "quarantinedUploadRetryable": true,
+      "recoveryReady": true,
+      "postRecoveryChecksum": true,
+      "testHarness": "qa/automation/storage-av-outage-recovery.cjs",
+      "testResult": "passed on deployed image tag 18-5044d47",
+      "syntheticOnly": true
+    },
+    "minioOutageRecovery": "not tested",
+    "openbaoOutageRecovery": "not tested",
+    "testObjectsSynthetic": true,
+    "fullUploadDownloadAndEicarValidatedTag": "17-e25fdbe; application code unchanged in release 18"
+  },
+  "openbao": {
+    "workloadAuth": "static Kubernetes Secret token; workload Kubernetes auto-auth not configured in live Deployment",
+    "selfRenewal": "passed in prior evidence; see dev-lab-2026-10-17.json",
+    "disposableTokenCreation": "403; not available to workload token",
+    "transitRotation": "403; operator permission required",
+    "activeTokenRevocation": "not performed; active application token",
+    "backupRestoreAndDecryptability": "not tested"
+  },
+  "remaining": [
+    "Role-specific organization journeys after invitation acceptance",
+    "External provider cycles and callbacks",
+    "Human clinical/legal/fiscal/commercial approvals",
+    "OpenBao Kubernetes workload auth, authorized key rotation and restore exercise",
+    "DAST warning review, ASVS, independent tenant review, pentest, image signing and admission verification",
+    "Screen reader and participant accessibility evaluation",
+    "100 req/s for 60 min, 24-hour soak, backups, restore, RPO and RTO",
+    "Production infrastructure, TLS and operational acceptance"
+  ],
+  "scanner": {
+    "sourceSecretScan": "Trivy offline secret scan completed on repository source; generated Java target and dependency/build directories excluded",
+    "finalImages": [
+      "web",
+      "api",
+      "iam",
+      "av"
+    ],
+    "highCriticalFindings": 0,
+    "lowSeverityNotes": "Trivy warned that ClamAV daily.cvd and main.cvd are large files; scans completed successfully"
+  },
+  "dast": {
+    "result": "SUCCESS",
+    "mode": "passive baseline",
+    "alertTypes": 13,
+    "manualReviewRequired": true,
+    "artifact": "http://jenkins.lab/job/conhecerse-dev/18/artifact/zap-baseline.json"
+  },
+  "jenkinsJobConfiguration": {
+    "parameters": [
+      "BRANCH",
+      "SKIP_TEST",
+      "DRY_RUN"
+    ],
+    "buildTrigger": "build #18 branch codex/lab-eicar-gitops-evidence-20261017; SKIP_TEST=false; DRY_RUN=false",
+    "configRepair": "Registered pipeline-declared parameters on job because job configuration had empty properties"
+  }
+}
