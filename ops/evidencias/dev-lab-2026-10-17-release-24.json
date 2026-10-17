@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-10-17T06:53:25Z",
+  "recordedAt": "2026-10-17T07:02:11Z",
   "target": "dev lab",
   "releaseApproved": false,
   "source": {
@@ -163,12 +163,20 @@
     "recoveryChecksum": true,
     "syntheticOnly": true
   },
+  "openbaoRelease24": {
+    "workloadAuthMode": "static Kubernetes Secret token",
+    "tokenSelfRenewRequest": { "http": 200, "renewable": true, "ttlSeconds": 2592000, "policies": ["conhecerse-dev"] },
+    "automaticRenewalOrKubernetesAutoAuth": false,
+    "activeCredentialRevocationTested": false,
+    "transitKeyRotationTested": false,
+    "restoreWithDecryptabilityTested": false
+  },
   "notValidated": [
     "K3s node clock synchronization: all five Conhecer-se pods on k3s01 measured 60 seconds behind the runner; review NTP before relying on TOTP and expiry behavior",
     "authenticated/full-scope DAST, ASVS, independent tenant authorization review, and penetration test",
     "manual review and remediation of passive ZAP warnings",
     "MinIO and OpenBao outage/recovery; the ClamAV fail-closed and recovery check passed against release 24",
-    "OpenBao active workload credential revocation, auto-auth, key rotation, and restore with decryptability verification",
+    "OpenBao auto-auth/automatic renewal, active workload credential revocation, Transit key rotation, and restore with decryptability verification",
     "Asaas patient and SaaS sandbox cycles, Resend, WhatsApp Business, Keycloak SMTP, and LiveKit with TURN/Redis/TLS",
     "human clinical, legal, fiscal, privacy, and commercial approvals",
     "ICP-Brasil trust chain/CRLs, PDF/A, and legal signature acceptance",
