@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     return response;
   } catch {
     return NextResponse.redirect(
-      new URL("/login?error=configuracao", origin()),
+      new URL("/login?error=configuracao", request.nextUrl.origin),
     );
   }
 }

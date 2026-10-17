@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowUpRight, LockKeyhole, ArrowLeft } from "lucide-react";
 import { Brand, Dandelion } from "@/components/brand";
 export default async function Login({
@@ -7,6 +8,10 @@ export default async function Login({
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
   const params = await searchParams;
+  if (!params.error) {
+    const next = params.next || "/app";
+    redirect("/api/auth/login?next=" + encodeURIComponent(next));
+  }
   return (
     <main className="login-page" id="conteudo">
       <div className="login-art">
