@@ -71,6 +71,52 @@
       ],
       "authenticatedCoverage": false,
       "fullAsvsOrIndependentPentest": false
+    },
+    "dastActive": {
+      "tool": "OWASP ZAP Automation Framework",
+      "version": "2.17.0",
+      "image": "ghcr.io/zaproxy/zaproxy:stable@sha256:5ccfff9a411743ab2615136a2edd7416bec9ce41572fa94e935df38c14adb2b6",
+      "recordedAt": "2026-10-17T07:06:51Z",
+      "baseUrl": "http://conhecerse.lab",
+      "authentication": "none",
+      "excludedPaths": ["http://conhecerse.lab/auth/.*"],
+      "spider": { "discoveredUrls": 66, "maxDepth": 3, "maxChildren": 20, "maxDurationMinutes": 1 },
+      "activeScan": {
+        "strength": "Low",
+        "threshold": "Medium",
+        "maxRuleDurationMinutes": 1,
+        "maxScanDurationMinutes": 2,
+        "delayMs": 100,
+        "threadsPerHost": 2,
+        "exitCode": 0
+      },
+      "report": {
+        "generatedAt": "2026-10-17T07:05:13Z",
+        "sha256": "8f1e0d681ad85a2e29904c278fe4882c4d0b7fab4504e62dd596307bd8ed7276",
+        "localArtifact": ".local/evidence/zap-release24-unauthenticated-active.json"
+      },
+      "alertTypeCount": 4,
+      "alertTypeCountsByRisk": { "medium": 1, "low": 1, "informational": 2 },
+      "highCriticalAlertTypes": 0,
+      "alerts": [
+        { "name": "CSP: style-src unsafe-inline", "risk": "medium", "instances": 5 },
+        { "name": "Big Redirect Detected (Potential Sensitive Information Leak)", "risk": "low", "instances": 1 },
+        { "name": "Modern Web Application", "risk": "informational", "instances": 1 },
+        { "name": "Session Management Response Identified", "risk": "informational", "instances": 1 }
+      ],
+      "redirectTriage": {
+        "path": "/login",
+        "httpStatus": 307,
+        "locationPath": "/api/auth/login",
+        "anonymousResponseBodyBytes": 5849,
+        "emailMarkerObserved": false,
+        "oauthCredentialMarkerObserved": false,
+        "patientDataMarkerObserved": false,
+        "formalFalsePositiveWaiver": false
+      },
+      "authenticatedCoverage": false,
+      "fullAsvsOrIndependentPentest": false,
+      "manualReviewRequired": true
     }
   },
   "gitops": {
