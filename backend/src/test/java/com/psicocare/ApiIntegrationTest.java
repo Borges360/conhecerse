@@ -2031,6 +2031,81 @@ class ApiIntegrationTest {
     }
 
     @Test
+    void PAT_guardianPreferencesAreScopedToGuardianEmail() throws Exception {
+        String guardian = "guardian-preferences-" + UUID.randomUUID();
+        UUID uid = register(guardian);
+        call(
+                post(base() + "/patients/" + patient + "/guardians"),
+                object(
+                        "guardianUserId",
+                        uid,
+                        "relationship",
+                        "SYNTHETIC_LEGAL_GUARDIAN",
+                        "accessScope",
+                        List.of("SCHEDULE"),
+                        "evidence",
+                        "SYNTHETIC_PREFERENCES_SCOPE_ONLY"),
+                subject,
+                201);
+
+        String slug = db.one("select slug from app.organizations where id=?", tenant).get("slug").toString();
+        for (String email : List.of("owner@example.invalid", "synthetic@example.invalid")) {
+            var result =
+                    mvc.perform(
+                                    post("/v1/public/newsletter/subscribe")
+                                            .header("Idempotency-Key", UUID.randomUUID())
+                                            .contentType("application/json")
+                                            .content(
+                                                    object(
+                                                                    "orgSlug",
+                                                                    slug,
+                                                                    "email",
+                                                                    email,
+                                                                    "noticeVersion",
+                                                                    "synthetic-v1")
+                                                            .toString()))
+                            .andReturn();
+            assertEquals(
+                    201,
+                    result.getResponse().getStatus(),
+                    result.getResponse().getContentAsString());
+        }
+
+        assertFalse(
+                call(get(base() + "/portal/preferences"), null, guardian, 200)
+                        .path("marketingEmail")
+                        .asBoolean());
+        call(
+                patch(base() + "/portal/preferences").header("If-Match", "\"v1\""),
+                object("marketingEmail", false, "noticeVersion", "synthetic-v1"),
+                guardian,
+                200);
+        assertFalse(
+                call(get(base() + "/portal/preferences"), null, guardian, 200)
+                        .path("marketingEmail")
+                        .asBoolean());
+
+        try (var conn = DriverManager.getConnection(url, user, password);
+                var st =
+                        conn.prepareStatement(
+                                "select unsubscribed_at from app.newsletter_subscriptions where"
+                                        + " tenant_id=? and email_lookup_hmac=?")) {
+            st.setObject(1, tenant);
+            st.setBytes(2, crypto.lookup(tenant, "owner@example.invalid"));
+            try (var rs = st.executeQuery()) {
+                assertTrue(rs.next());
+                assertNotNull(rs.getObject(1), "guardian opt-out unsubscribes guardian email");
+            }
+            st.setObject(1, tenant);
+            st.setBytes(2, crypto.lookup(tenant, "synthetic@example.invalid"));
+            try (var rs = st.executeQuery()) {
+                assertTrue(rs.next());
+                assertNull(rs.getObject(1), "guardian opt-out preserves patient email subscription");
+            }
+        }
+    }
+
+    @Test
     void PAT_portalCanReadOwnInvoiceAndWithdrawMarketing() throws Exception {
         String patientSub = "portal-" + UUID.randomUUID();
         UUID uid = register(patientSub);
