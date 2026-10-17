@@ -109,13 +109,14 @@ body.kcBody {
 .pf-v5-c-login__container {
   position: relative;
   z-index: 2;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  display: flex;
   width: 54%;
   max-width: none;
   min-height: 100vh;
   margin: 0 0 0 46%;
   padding: 8vh clamp(50px, 8.1vw, 116px);
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
 .pf-v5-c-login__container::after {
@@ -187,7 +188,8 @@ body.kcBody {
 }
 
 .pf-v5-c-login__main {
-  align-self: center;
+  margin-top: auto;
+  margin-bottom: auto;
   overflow: visible;
   border: 0;
   border-radius: 0;
@@ -380,7 +382,7 @@ a:hover,
   }
 
   .pf-v5-c-login__main {
-    margin-top: 0;
+    margin: 0;
   }
 
   #kc-page-title,
