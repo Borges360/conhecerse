@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-10-17T01:27:13.771Z",
+  "recordedAt": "2026-10-17T01:34:12.364Z",
   "localDate": "2026-10-16",
   "timezone": "America/Sao_Paulo",
   "target": "dev lab",
@@ -99,7 +99,6 @@
   },
   "notValidated": [
     "storage, antivirus, or vault outage and recovery",
-    "OpenBao workload credential renewal, revocation, key rotation, and restore",
     "role-specific workflows for all six user profiles",
     "external provider cycles",
     "human legal, clinical, fiscal, and commercial approvals",
@@ -107,6 +106,31 @@
     "image signing and admission verification",
     "screen-reader, video-room, checkout, and participant accessibility",
     "load, soak, backup restore, RPO, and RTO acceptance",
-    "production infrastructure and operational acceptance"
-  ]
+    "production infrastructure and operational acceptance",
+    "OpenBao workload credential revocation, operator-authorized key rotation, backup restore, and restored-data decryptability"
+  ],
+  "openbao": {
+    "verifiedAt": "2026-10-17T01:34:12.364Z",
+    "workloadAuthMode": "static Kubernetes Secret token; OpenBao service token created with create-orphan; live Deployment has no Kubernetes auto-auth sidecar",
+    "tokenRenewal": {
+      "selfRenewal": "passed",
+      "ttlBeforeSeconds": 2452582,
+      "ttlAfterSeconds": 2592000,
+      "activeTokenRevocation": "not performed to avoid interrupting the running API",
+      "disposableTokenCreateHttp": 403
+    },
+    "transit": {
+      "key": "conhecerse",
+      "encryptVersionBeforeRotateAttempt": 1,
+      "keyMetadataReadHttp": 403,
+      "rotateHttp": 403,
+      "keyRotationCompleted": false,
+      "oldSyntheticFileReadbackAfterDeniedAttempt": true,
+      "newSyntheticFileEncryptDecryptAfterDeniedAttempt": true
+    },
+    "restore": {
+      "backupRestoreTested": false,
+      "restoredDataDecryptabilityTested": false
+    }
+  }
 }
