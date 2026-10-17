@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-10-17T06:42:02Z",
+  "recordedAt": "2026-10-17T06:50:32Z",
   "target": "dev lab",
   "releaseApproved": false,
   "source": {
@@ -99,8 +99,16 @@
       ".local/login-live-release24-mobile.png"
     ]
   },
+  "clusterClock": {
+    "measuredAt": "2026-10-17T06:50:22Z",
+    "reference": "local runner UTC clock",
+    "scheduledNode": "k3s01",
+    "podClockDriftSeconds": -60,
+    "checkedDeployments": ["conhecerse", "conhecerse-api", "conhecerse-worker", "conhecerse-iam", "conhecerse-av"],
+    "note": "QA TOTP was calculated with the measured offset; pod clocks follow the node kernel clock, so node time synchronization requires infrastructure review."
+  },
   "qaAccounts": {
-    "syntheticProfilesAvailableFromPriorLabValidation": [
+    "syntheticProfiles": [
       "admin",
       "professional",
       "secretary",
@@ -108,9 +116,35 @@
       "patient",
       "guardian"
     ],
+    "keycloakTotpLogin": "6/6 using the dedicated Kubernetes QA credential secret; credentials and sessions are not included in evidence",
+    "opaqueHttpOnlyBffSession": "6/6",
+    "roleUiScreens": "6/6 loaded with one main heading and no error alerts",
+    "roleAccessibility": { "standard": "axe-core WCAG 2.2 AA", "criticalOrSeriousViolations": 0, "allViolations": 0 },
+    "syntheticOnly": true
+  },
+  "roleJourneys": {
+    "readOnlyApiMatrixHttp": {
+      "admin": { "members": 200, "patients": 200, "professionals": 200, "payers": 200, "invoices": 200 },
+      "professional": { "members": 403, "patients": 200, "professionals": 200, "payers": 403, "invoices": 200 },
+      "secretary": { "members": 403, "patients": 200, "professionals": 200, "payers": 403, "invoices": 200 },
+      "finance": { "members": 403, "patients": 403, "professionals": 200, "payers": 200, "invoices": 200 },
+      "patient": { "members": 403, "patients": 403, "professionals": 403, "payers": 403, "invoices": 200, "portalMe": 200, "portalAppointments": 200, "portalInvoices": 200 },
+      "guardian": { "members": 403, "patients": 403, "professionals": 403, "payers": 403, "invoices": 200, "portalMe": 200, "portalAppointments": 200, "portalInvoices": 200 }
+    },
+    "readOnlyScreens": {
+      "admin": "organization dashboard",
+      "professional": "assigned patient detail",
+      "secretary": "calendar",
+      "finance": "finance",
+      "patient": "patient portal",
+      "guardian": "guardian portal"
+    },
+    "screensLoadedWithoutErrorAlerts": "6/6",
+    "dataMutated": false,
     "syntheticOnly": true
   },
   "notValidated": [
+    "K3s node clock synchronization: k3s01 and all five Conhecer-se pods measured 60 seconds behind the runner; review NTP before relying on TOTP and expiry behavior",
     "authenticated/full-scope DAST, ASVS, independent tenant authorization review, and penetration test",
     "manual review and remediation of passive ZAP warnings",
     "MinIO, OpenBao, and ClamAV end-to-end outage/recovery retest against release 24",
