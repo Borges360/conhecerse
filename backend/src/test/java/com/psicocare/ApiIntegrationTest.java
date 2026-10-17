@@ -2009,14 +2009,12 @@ class ApiIntegrationTest {
                         subject,
                         201);
         String invoicePath = base() + "/invoices/" + invoice.path("id").asText();
+        call(get(invoicePath), null, guardian, 200);
+        var guardianInvoices = call(get(base() + "/portal/invoices"), null, guardian, 200);
+        assertEquals(1, guardianInvoices.path("items").size(), "billing scope lists the linked invoice");
         assertEquals(
                 invoice.path("id").asText(),
-                call(get(base() + "/portal/invoices"), null, guardian, 200)
-                        .path("items")
-                        .get(0)
-                        .path("id")
-                        .asText());
-        call(get(invoicePath), null, guardian, 200);
+                guardianInvoices.path("items").get(0).path("id").asText());
         admin(
                 "update app.guardian_patient_access set access_scope=ARRAY['SCHEDULE'] where"
                         + " guardian_user_id='"
