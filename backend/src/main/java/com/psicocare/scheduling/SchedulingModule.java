@@ -226,7 +226,14 @@ public class SchedulingModule implements ModuleHandler {
                                     + " p.tenant_id=ap.tenant_id and p.id=ap.patient_id where"
                                     + " ap.tenant_id=?");
             if (portal) {
-                sql.append(" and p.portal_user_id=?");
+                sql.append(
+                        " and (p.portal_user_id=? or exists (select 1 from"
+                            + " app.guardian_patient_access g where g.tenant_id=ap.tenant_id and"
+                            + " g.patient_id=ap.patient_id and g.guardian_user_id=? and"
+                            + " g.legal_verified_at is not null and not g.review_required and"
+                            + " g.valid_from<=now() and (g.valid_until is null or g.valid_until>now())"
+                            + " and 'SCHEDULE'=any(g.access_scope)))");
+                args.add(a.user());
                 args.add(a.user());
             }
             if (c.query().containsKey("from")) {

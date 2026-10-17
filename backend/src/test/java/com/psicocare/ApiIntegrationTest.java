@@ -1949,6 +1949,33 @@ class ApiIntegrationTest {
                         subject,
                         201);
         call(get(base() + "/patients/" + patient), null, guardian, 200);
+        var scheduledAppointment =
+                call(
+                        post(base() + "/appointments"),
+                        appointment(
+                                OffsetDateTime.now(ZoneOffset.of("-03:00"))
+                                        .plusDays(3)
+                                        .withHour(10)
+                                        .withMinute(0)
+                                        .withSecond(0)
+                                        .withNano(0)),
+                        subject,
+                        201);
+        var guardianAppointments =
+                call(get(base() + "/portal/appointments"), null, guardian, 200);
+        assertEquals(1, guardianAppointments.path("items").size());
+        assertEquals(
+                scheduledAppointment.path("id").asText(),
+                guardianAppointments.path("items").get(0).path("id").asText());
+        admin(
+                "update app.guardian_patient_access set access_scope=ARRAY['BILLING'] where id='"
+                        + grant.path("id").asText()
+                        + "'");
+        assertEquals(
+                0,
+                call(get(base() + "/portal/appointments"), null, guardian, 200)
+                        .path("items")
+                        .size());
         call(
                 patch(base() + "/patients/" + patient).header("If-Match", "\"v1\""),
                 object("socialName", "Not permitted"),
@@ -1960,6 +1987,7 @@ class ApiIntegrationTest {
                         + grant.path("id").asText()
                         + "'");
         call(get(base() + "/patients/" + patient), null, guardian, 404);
+        call(get(base() + "/portal/appointments"), null, guardian, 404);
     }
 
     @Test

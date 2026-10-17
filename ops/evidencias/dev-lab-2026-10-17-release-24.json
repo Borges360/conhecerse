@@ -186,7 +186,45 @@
       "guardian": "guardian portal"
     },
     "screensLoadedWithoutErrorAlerts": "6/6",
-    "dataMutated": false,
+    "readOnlyMatrixDataMutated": false,
+    "routeCrawlRelease24": {
+      "target": "conhecerse.lab dev",
+      "readOnlyNavigation": true,
+      "routesVisited": 43,
+      "routesRenderedWithMainAndHeading": 43,
+      "errorAlerts": 0,
+      "byRole": {
+        "admin": { "visited": 10, "rendered": 10 },
+        "professional": { "visited": 11, "rendered": 11 },
+        "secretary": { "visited": 10, "rendered": 10 },
+        "finance": { "visited": 10, "rendered": 10 },
+        "patient": { "visited": 1, "rendered": 1 },
+        "guardian": { "visited": 1, "rendered": 1 }
+      },
+      "syntheticOnly": true
+    },
+    "completionUiWriteRelease24": {
+      "organizationRegistrationSavedAndReread": true,
+      "professionalProfileSavedAndReread": true,
+      "remoteProtocolSubmittedAndReread": true,
+      "axeCriticalOrSeriousViolations": 0,
+      "syntheticTestDataCreated": true,
+      "syntheticOnly": true
+    },
+    "guardianWriteDenialRelease24": {
+      "attempt": "manual payment on synthetic invoice",
+      "http": 403,
+      "invoiceUnchanged": true,
+      "syntheticOnly": true
+    },
+    "guardianPortalReadRelease24": {
+      "appointmentsHttp": 200,
+      "scheduleScopedAppointmentListed": false,
+      "invoiceListHttp": 200,
+      "invoiceCount": 1,
+      "syntheticOnly": true,
+      "finding": "Release 24 did not include a guardian's SCHEDULE-scoped appointment in the portal list; fix is in source and awaits deployment."
+    },
     "syntheticOnly": true
   },
   "filesRelease24": {
@@ -227,6 +265,7 @@
     "human clinical, legal, fiscal, privacy, and commercial approvals",
     "ICP-Brasil trust chain/CRLs, PDF/A, and legal signature acceptance",
     "logs/traces/metrics/images DLP expansion",
+    "complete UI write/error/recovery journeys for all six profiles; the release24 route crawl and admin completion flow cover only a subset",
     "image signing, admission verification, and immutable digest enforcement",
     "screen-reader, video-room, checkout, and real participant accessibility",
     "100 rps for 60 minutes, 24 hour soak, and stated latency objectives",
