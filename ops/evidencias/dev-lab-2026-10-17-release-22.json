@@ -104,6 +104,12 @@
       "revokingBillingScopeDeniesListAndDirectRead": true
     },
     "roleScreens": "6/6 rendered with no error alerts",
+    "loginPresentation": {
+      "path": "/login",
+      "http": 200,
+      "title": "Conhecer-se · Paola Gularte",
+      "separateAuthHostHttp": 404
+    },
     "uiCompletionJourney": {
       "organizationRegistrationSavedAndReadBack": true,
       "professionalProfileSavedAndReadBack": true,
@@ -136,11 +142,13 @@
     "openbaoTransitApplicationEncryptDecrypt": true,
     "syntheticQaObjectsRetained": true,
     "eicarZip": {
+      "recordedAt": "2026-10-17T05:17:28Z",
       "payload": "EICAR test file inside ZIP appended to PNG signature",
       "status": "REJECTED/MALWARE_DETECTED",
       "rejectedDownloadDenied": true
     },
     "downloadTicketExpiry": {
+      "recordedAt": "2026-10-17T05:18:56Z",
       "cleanUploadReady": true,
       "ttlSeconds": 60,
       "expiredTicketHttp": 403
