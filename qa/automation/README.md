@@ -4,7 +4,9 @@ Complementação: `completion-flow.cjs` utiliza a sessão OIDC local e exercita 
 
 `oidc-flow.cjs` executa login no Keycloak, cadastro TOTP quando necessário, callback PKCE, verifica cookie HttpOnly/sessão sem bearer e cria organização pela interface. `vertical-flow.cjs` usa a sessão para cadastrar/revisar profissional, disponibilidade/preço, paciente, agenda, nota assinada, fatura com pagamento manual, conteúdo revisado/publicado e negação CSRF.
 
-Somente localhost, ambiente exclusivo e dados sintéticos. Suba Keycloak/PostgreSQL/API/Next com `APP_ENV=test`, KMS de teste e origem/issuer/client coerentes; nunca utilize dados ou contas reais. Os serviços devem estar prontos. A fixture precisa de `username`, `email`, `password` em `.local/oidc-fixture.json`; o teste registra seu segredo TOTP no mesmo arquivo privado. Não publicar fixture, storageState, tokens ou dumps como artefatos.
+Os fluxos locais usam somente localhost, ambiente exclusivo e dados sintéticos. Suba Keycloak/PostgreSQL/API/Next com `APP_ENV=test`, KMS de teste e origem/issuer/client coerentes; nunca utilize dados ou contas reais. Os serviços devem estar prontos. A fixture precisa de `username`, `email`, `password` em `.local/oidc-fixture.json`; o teste registra seu segredo TOTP no mesmo arquivo privado. Não publicar fixture, storageState, tokens ou dumps como artefatos.
+
+`storage-av-outage-recovery.cjs` é uma exceção manual para o laboratório dev: exige `E2E_ISOLATED_SYNTHETIC=true`, `E2E_TARGET_DEV_LAB=conhecerse.lab`, `storageState` local do administrador sintético e `kubectl` apontado ao cluster. Confere o host do Ingress e que `conhecerse-av` esteja em 1/1, escala somente esse Deployment durante o teste, exige falha fechada HTTP 503 e restaura a quantidade original de réplicas em `finally`. Não executar fora do namespace `dev`.
 
 Para gerar usuário sintético via Admin API local, forneça `.local/oidc-runtime.env` com `APP_ENV=test`, `OIDC_ISSUER`, `KC_BOOTSTRAP_ADMIN_USERNAME`, `KC_BOOTSTRAP_ADMIN_PASSWORD`, sem imprimir valores:
 

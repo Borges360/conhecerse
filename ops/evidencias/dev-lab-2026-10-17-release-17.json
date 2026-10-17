@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-10-17T00:02:59.8615345-03:00",
+  "recordedAt": "2026-10-17T00:07:57.2365470-03:00",
   "localDate": "2026-10-17",
   "timezone": "America/Sao_Paulo",
   "target": "dev lab",
@@ -83,6 +83,18 @@
     "ttl60SecondsEnforced": true,
     "eicarRejected": true,
     "rejectedFileDownloadDenied": true,
+    "avOutageRecovery": {
+      "injected": true,
+      "failureHttp": 503,
+      "failureCode": "MALWARE_SCANNER_UNAVAILABLE",
+      "quarantinedUploadRetryable": true,
+      "recoveryReady": true,
+      "postRecoveryChecksum": true,
+      "testHarness": "qa/automation/storage-av-outage-recovery.cjs",
+      "testResult": "passed on deployed image tag 17-e25fdbe"
+    },
+    "minioOutageRecovery": "not tested",
+    "openbaoOutageRecovery": "not tested",
     "testObjectsSynthetic": true
   },
   "openbao": {
