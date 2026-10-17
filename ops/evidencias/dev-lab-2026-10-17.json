@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-10-17T01:34:12.364Z",
+  "recordedAt": "2026-10-17T01:35:56.251Z",
   "localDate": "2026-10-16",
   "timezone": "America/Sao_Paulo",
   "target": "dev lab",
@@ -38,7 +38,25 @@
     "apiHealthHttp": 200,
     "keycloakDiscoveryHttp": 200,
     "argoSync": "Synced",
-    "argoHealth": "Degraded"
+    "argoHealth": "Degraded",
+    "webHttp": 200,
+    "argoDegradedResources": [
+      {
+        "deployment": "publishsys",
+        "ready": false,
+        "condition": "ProgressDeadlineExceeded",
+        "restarts": 607,
+        "unrelatedToConhecerse": true
+      },
+      {
+        "deployment": "sistemalux",
+        "ready": false,
+        "condition": "ProgressDeadlineExceeded",
+        "restarts": 454,
+        "unrelatedToConhecerse": true
+      }
+    ],
+    "argoHealthReason": "Aggregate Argo app dev includes unrelated publishsys and sistemalux deployments in CrashLoopBackOff; all five conhecerse deployments remain 1/1."
   },
   "qaAccounts": {
     "createdOrExistingSyntheticUsers": [
