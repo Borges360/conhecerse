@@ -130,6 +130,8 @@
     "encryptedStorageAndReadback": true,
     "downloadChecksum": true,
     "anonymousApplicationDownloadHttp": 401,
+    "anonymousBucketListHttp": 403,
+    "anonymousBucketListRecordedAt": "2026-10-17T05:27:57Z",
     "downloadTicketSingleUse": true,
     "downloadTicketTtlSeconds": 60,
     "crossOrganizationDownloadHttp": 404,
