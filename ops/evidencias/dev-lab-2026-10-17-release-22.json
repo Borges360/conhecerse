@@ -1,0 +1,164 @@
+{
+  "recordedAt": "2026-10-17T05:16:11Z",
+  "target": "dev lab",
+  "releaseApproved": false,
+  "source": {
+    "commit": "f0eae05",
+    "jenkinsBuild": 22,
+    "jenkinsResult": "SUCCESS",
+    "reportedTests": {
+      "java": 110,
+      "webUnit": 24,
+      "browserE2E": 6,
+      "totalJUnit": 140,
+      "failed": 0,
+      "skipped": 0
+    },
+    "mutationTesting": {
+      "mutations": 452,
+      "killed": 349,
+      "testStrengthPercent": 82,
+      "configuredThresholdPercent": 70,
+      "result": "passed"
+    }
+  },
+  "pipeline": {
+    "sourceSecretScan": "passed with Trivy offline scan; no Maven Central resolution",
+    "finalImageScans": {
+      "web": { "highCritical": 0, "secrets": 0 },
+      "api": { "highCritical": 0, "secrets": 0 },
+      "iam": { "highCritical": 0, "secrets": 0 },
+      "antivirus": { "highCritical": 0, "secrets": 0 }
+    },
+    "sbomComponents": {
+      "web": 61,
+      "api": 212,
+      "iam": 563,
+      "antivirus": 42,
+      "java": 146
+    },
+    "capacityGate": "passed pre-migration preflight; this is not the 100 rps/60 minute acceptance run",
+    "flyway": "V012 guardian billing read applied successfully",
+    "deploymentsReady": "5/5 at 1/1",
+    "apiReadyHttp": 200,
+    "webHttp": 200,
+    "dast": {
+      "mode": "passive ZAP baseline",
+      "alertTypes": 9,
+      "instances": { "medium": 9, "low": 1, "informational": 31 },
+      "highCritical": 0,
+      "manualReview": [
+        "Keycloak OIDC login form CSRF heuristic",
+        "CSP style-src unsafe-inline",
+        "KC_AUTH_SESSION_HASH HttpOnly heuristic",
+        "transient authentication parameters reported in URLs",
+        "user-controlled HTML attribute heuristic"
+      ]
+    }
+  },
+  "gitops": {
+    "repository": "homelab/infra",
+    "path": "infra/k3s/dev/conhecerse.yaml",
+    "commit": "40ba0ca7c1915ee907b4e97d746ae0362ea8099b",
+    "argoRevision": "40ba0ca7c1915ee907b4e97d746ae0362ea8099b",
+    "argoSync": "Synced",
+    "argoHealth": "Degraded by unrelated publishsys and sistemalux deployments",
+    "imageTag": "22-f0eae05",
+    "allFiveDeploymentsMatchTag": true
+  },
+  "qaAccounts": {
+    "syntheticProfiles": [
+      "admin",
+      "professional",
+      "secretary",
+      "finance",
+      "patient",
+      "guardian"
+    ],
+    "keycloakTotpLogin": "6/6",
+    "opaqueHttpOnlyBffSession": "6/6",
+    "allInvitationsAccepted": true,
+    "syntheticOnly": true
+  },
+  "roleJourneys": {
+    "apiMatrix": {
+      "admin": "members/patients/professionals/payers/invoices 200",
+      "professional": "assigned patient only; members and payers 403",
+      "secretary": "patient directory 200; members and payers 403",
+      "finance": "patient directory 403; payers and invoices 200",
+      "patient": "internal patient directory 403; own portal and invoices 200",
+      "guardian": "internal patient directory 403; linked portal and scoped invoices 200"
+    },
+    "portalPreferences": {
+      "patientHttp": 200,
+      "guardianHttp": 200,
+      "guardianUiErrorAlerts": 0,
+      "guardianMarketingChoiceScopedToVerifiedGuardianEmail": true
+    },
+    "guardianBillingScope": {
+      "readLinkedInvoice": true,
+      "directInvoiceRead": true,
+      "writeAllowed": false,
+      "manualPaymentWriteProbeHttp": 403,
+      "invoiceUnchangedAfterForbiddenWriteProbe": true,
+      "revokingBillingScopeDeniesListAndDirectRead": true
+    },
+    "roleScreens": "6/6 rendered with no error alerts",
+    "uiCompletionJourney": {
+      "organizationRegistrationSavedAndReadBack": true,
+      "professionalProfileSavedAndReadBack": true,
+      "remoteProtocolSubmittedForReview": true,
+      "axeCriticalOrSerious": 0
+    },
+    "verticalJourney": {
+      "patientCreated": true,
+      "appointmentScheduled": true,
+      "clinicalNoteSigned": true,
+      "syntheticManualInvoicePaid": true,
+      "contentReviewedAndPublished": true,
+      "csrfDenied": true
+    }
+  },
+  "files": {
+    "uploadValidated": true,
+    "encryptedStorageAndReadback": true,
+    "downloadChecksum": true,
+    "anonymousApplicationDownloadHttp": 401,
+    "downloadTicketSingleUse": true,
+    "downloadTicketTtlSeconds": 60,
+    "crossOrganizationDownloadHttp": 404,
+    "eicarStatus": "REJECTED/MALWARE_DETECTED",
+    "clamavUnavailableHttp": 503,
+    "clamavUnavailableCode": "MALWARE_SCANNER_UNAVAILABLE",
+    "fileRetryableDuringOutage": true,
+    "clamavRecoveryReady": true,
+    "recoveryChecksum": true,
+    "openbaoTransitApplicationEncryptDecrypt": true,
+    "syntheticQaObjectsRetained": true
+  },
+  "openbao": {
+    "workloadAuthMode": "static Kubernetes Secret token; no Kubernetes auto-auth sidecar",
+    "tokenSelfRenewal": "passed in prior lab evidence at 2026-10-17T01:34:12Z",
+    "currentTransitUse": "passed through application upload/download",
+    "activeCredentialRevocation": "not performed",
+    "transitKeyRotation": "not performed; application token lacks key metadata/rotate capability",
+    "backupRestoreTested": false,
+    "restoredDataDecryptabilityTested": false
+  },
+  "notValidated": [
+    "MinIO and OpenBao outage/recovery",
+    "active workload credential revocation and automated renewal configuration",
+    "restore of database, objects, and KMS keys with decryptability verification",
+    "Asaas patient and SaaS sandbox cycles",
+    "Resend, WhatsApp Business, Keycloak SMTP, LiveKit, Redis HA, and TURN/TLS",
+    "human clinical, legal, fiscal, privacy, and commercial approvals",
+    "ICP-Brasil trust chain/CRLs, PDF/A, and legal signature acceptance",
+    "active DAST/ASVS, independent tenant authorization review, and penetration test",
+    "logs/traces/metrics/images DLP expansion",
+    "image signing, admission verification, and immutable digest enforcement",
+    "screen-reader, video-room, checkout, and real participant accessibility",
+    "100 rps for 60 minutes, 24 hour soak, and stated latency objectives",
+    "database/object/key restore exercise, measured RPO/RTO, alerting, and incident runbook",
+    "production infrastructure, domain/TLS, secrets operations, and release approval"
+  ]
+}
