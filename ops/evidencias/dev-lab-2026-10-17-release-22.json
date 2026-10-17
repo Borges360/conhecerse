@@ -54,6 +54,35 @@
         "transient authentication parameters reported in URLs",
         "user-controlled HTML attribute heuristic"
       ]
+    },
+    "dastActiveUnauthenticated": {
+      "scanner": "OWASP ZAP 2.17.0 Automation Framework",
+      "recordedAt": "2026-10-17T05:45:39Z",
+      "scope": "http://conhecerse.lab; unauthenticated; Keycloak /auth/ excluded",
+      "urlsDiscovered": 67,
+      "activeScanDurationSeconds": 120,
+      "attackStrength": "Low",
+      "delayBetweenRequestsMs": 100,
+      "threadsPerHost": 2,
+      "planExit": 0,
+      "reportSha256": "7544815a68674e13fe98ddadc28b0d79feefb016465ed3907d16fbd4248a38b5",
+      "alerts": [
+        {
+          "name": "CSP: style-src unsafe-inline",
+          "risk": "Medium",
+          "confidence": "High",
+          "instances": 5
+        },
+        {
+          "name": "Session Management Response Identified",
+          "risk": "Informational",
+          "confidence": "Medium",
+          "instances": 1
+        }
+      ],
+      "highCritical": 0,
+      "authenticatedCoverage": false,
+      "fullAsvsOrIndependentPentest": false
     }
   },
   "gitops": {
@@ -104,6 +133,19 @@
       "revokingBillingScopeDeniesListAndDirectRead": true
     },
     "roleScreens": "6/6 rendered with no error alerts",
+    "roleAccessibilityScan": {
+      "recordedAt": "2026-10-17T05:49:23Z",
+      "scanner": "axe-core WCAG 2.2 AA",
+      "profiles": ["admin", "professional", "secretary", "finance", "patient", "guardian"],
+      "criticalOrSeriousViolations": 1,
+      "finding": {
+        "role": "secretary",
+        "rule": "scrollable-region-focusable",
+        "impact": "serious",
+        "target": ".calendar-scroll"
+      },
+      "sourceFixImplementedPendingDeployment": true
+    },
     "loginPresentation": {
       "path": "/login",
       "http": 200,
@@ -173,7 +215,7 @@
     "Resend, WhatsApp Business, Keycloak SMTP, LiveKit, Redis HA, and TURN/TLS",
     "human clinical, legal, fiscal, privacy, and commercial approvals",
     "ICP-Brasil trust chain/CRLs, PDF/A, and legal signature acceptance",
-    "active DAST/ASVS, independent tenant authorization review, and penetration test",
+    "authenticated/full-scope DAST and ASVS, contextual review and remediation of ZAP findings, independent tenant authorization review, and penetration test",
     "logs/traces/metrics/images DLP expansion",
     "image signing, admission verification, and immutable digest enforcement",
     "screen-reader, video-room, checkout, and real participant accessibility",
