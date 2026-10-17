@@ -2,6 +2,8 @@
 
 > Relatório de corte preservado. A implementação posterior das lacunas de código está descrita em [IMPLEMENTACAO_PENDENCIAS.md](IMPLEMENTACAO_PENDENCIAS.md). Homologações externas e condições de produção descritas abaixo permanecem pendentes até evidência real.
 
+> **Atualização de estado em 17/10/2026:** o laboratório já recebeu o primeiro deploy (Jenkins #17, commit `e25fdbe`, tag GitOps `17-e25fdbe`). A seção 5 abaixo descreve o corte histórico de 14/10/2026; para o estado atual do laboratório, use [IMPLEMENTACAO_PENDENCIAS.md](IMPLEMENTACAO_PENDENCIAS.md) e a [evidência do release 17](../ops/evidencias/dev-lab-2026-10-17-release-17.json). Essa atualização não significa aceite de produção.
+
 **Data de corte:** 14/10/2026  
 **Escopo:** baseline PSC-TECH-002 v2.0.0 e seu estado documentado no repositório.  
 **Objetivo:** distinguir lacunas funcionais de código, integrações ainda não homologadas e condições operacionais de liberação.
