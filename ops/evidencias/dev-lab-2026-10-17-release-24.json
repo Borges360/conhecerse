@@ -1,0 +1,128 @@
+{
+  "recordedAt": "2026-10-17T06:42:02Z",
+  "target": "dev lab",
+  "releaseApproved": false,
+  "source": {
+    "commit": "8661385f5f58fdef442337874e70d4160dd05c7c",
+    "jenkinsBuild": 24,
+    "jenkinsTag": "24-8661385",
+    "jenkinsResult": "SUCCESS",
+    "reportedTests": {
+      "totalJUnit": 140,
+      "failed": 0,
+      "skipped": 0
+    },
+    "localLoginRegression": {
+      "typecheck": "passed",
+      "webUnitTests": "24 passed",
+      "productionBuild": "passed",
+      "browserE2E": "3 desktop Chromium and 3 mobile Chromium passed"
+    }
+  },
+  "pipeline": {
+    "sourceSecretScan": "Trivy offline scan passed without Maven Central resolution",
+    "filesystemVulnerabilityScan": "passed",
+    "javaSbomVulnerabilityScan": "passed; no HIGH/CRITICAL findings",
+    "webSbom": "generated",
+    "finalImageScans": {
+      "web": { "highCritical": 0, "secrets": 0 },
+      "api": { "highCritical": 0, "secrets": 0 },
+      "iam": { "highCritical": 0, "secrets": 0 },
+      "antivirus": { "highCritical": 0, "secrets": 0 }
+    },
+    "images": {
+      "web": {
+        "reference": "registry.platform.svc.cluster.local:5000/conhecerse:24-8661385",
+        "digest": "sha256:8c55cb527279946bcdf14d4e2d9f5bfb450fb6774f5d1d886f2a4ce2ab22072c"
+      },
+      "apiAndWorker": {
+        "reference": "registry.platform.svc.cluster.local:5000/conhecerse-api:24-8661385",
+        "digest": "sha256:4466baf2c2fd5843721b5b918aeab48ed20c1537243c75664cafe4bbabd26c5f"
+      },
+      "iam": {
+        "reference": "registry.platform.svc.cluster.local:5000/conhecerse-iam:24-8661385",
+        "digest": "sha256:0a720648028c1e0e61a10f135b922ca435ac5db213ba19819159572643b64bc8"
+      },
+      "antivirus": {
+        "reference": "registry.platform.svc.cluster.local:5000/conhecerse-av:24-8661385",
+        "digest": "sha256:507eaf47f731996695ee3a3cf25ae4f947b1c8e959071c92eca5f5ec5559abdb"
+      }
+    },
+    "capacityGate": "passed pre-migration preflight; this is not the 100 rps/60 minute acceptance run",
+    "flyway": "validated 13 migrations",
+    "deploymentsReady": "5/5 at 1/1",
+    "apiReadyHttp": 200,
+    "webHttp": 200,
+    "dast": {
+      "mode": "passive unauthenticated ZAP baseline",
+      "failures": 0,
+      "warningCategories": 10,
+      "warnings": [
+        { "name": "Cookie No HttpOnly Flag", "instances": 1 },
+        { "name": "Information Disclosure - Sensitive Information in URL", "instances": 3 },
+        { "name": "User Controllable HTML Element Attribute (Potential XSS)", "instances": 8 },
+        { "name": "Big Redirect Detected", "instances": 1 },
+        { "name": "Non-Storable Content", "instances": 9 },
+        { "name": "CSP: Failure to Define Directive with No Fallback", "instances": 8 },
+        { "name": "Modern Web Application", "instances": 1 },
+        { "name": "Authentication Request Identified", "instances": 1 },
+        { "name": "Session Management Response Identified", "instances": 2 },
+        { "name": "Absence of Anti-CSRF Tokens", "instances": 4 }
+      ],
+      "authenticatedCoverage": false,
+      "fullAsvsOrIndependentPentest": false
+    }
+  },
+  "gitops": {
+    "repository": "homelab/infra",
+    "path": "infra/k3s/dev/conhecerse.yaml",
+    "commit": "0085c225113760c1b0a8d7c986845c42c051b27b",
+    "argoRevision": "0085c225113760c1b0a8d7c986845c42c051b27b",
+    "argoSync": "Synced",
+    "argoHealth": "Degraded by unrelated publishsys and sistemalux deployments",
+    "allFiveDeploymentsMatchTag": true
+  },
+  "login": {
+    "request": "http://conhecerse.lab/login",
+    "initialHttp": 307,
+    "oidcHost": "conhecerse.lab",
+    "oidcPath": "/auth/realms/conhecerse/protocol/openid-connect/auth",
+    "title": "Entre no seu espaço.",
+    "themeCssHttp": 200,
+    "lightDandelionSvgHttp": 200,
+    "legacyHost": "http://conhecerse-auth.lab/",
+    "legacyHostHttp": 404,
+    "axeWcag22AA": { "desktopViolations": 0, "mobileViolations": 0 },
+    "credentialsEntered": false,
+    "visualEvidence": [
+      ".local/login-live-release24-desktop.png",
+      ".local/login-live-release24-mobile.png"
+    ]
+  },
+  "qaAccounts": {
+    "syntheticProfilesAvailableFromPriorLabValidation": [
+      "admin",
+      "professional",
+      "secretary",
+      "finance",
+      "patient",
+      "guardian"
+    ],
+    "syntheticOnly": true
+  },
+  "notValidated": [
+    "authenticated/full-scope DAST, ASVS, independent tenant authorization review, and penetration test",
+    "manual review and remediation of passive ZAP warnings",
+    "MinIO, OpenBao, and ClamAV end-to-end outage/recovery retest against release 24",
+    "OpenBao active workload credential revocation, auto-auth, key rotation, and restore with decryptability verification",
+    "Asaas patient and SaaS sandbox cycles, Resend, WhatsApp Business, Keycloak SMTP, and LiveKit with TURN/Redis/TLS",
+    "human clinical, legal, fiscal, privacy, and commercial approvals",
+    "ICP-Brasil trust chain/CRLs, PDF/A, and legal signature acceptance",
+    "logs/traces/metrics/images DLP expansion",
+    "image signing, admission verification, and immutable digest enforcement",
+    "screen-reader, video-room, checkout, and real participant accessibility",
+    "100 rps for 60 minutes, 24 hour soak, and stated latency objectives",
+    "database/object/key restore exercise, measured RPO/RTO, alerting, and incident runbook",
+    "production infrastructure, domain/TLS, secrets operations, and release approval"
+  ]
+}
