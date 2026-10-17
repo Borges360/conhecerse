@@ -134,7 +134,17 @@
     "clamavRecoveryReady": true,
     "recoveryChecksum": true,
     "openbaoTransitApplicationEncryptDecrypt": true,
-    "syntheticQaObjectsRetained": true
+    "syntheticQaObjectsRetained": true,
+    "eicarZip": {
+      "payload": "EICAR test file inside ZIP appended to PNG signature",
+      "status": "REJECTED/MALWARE_DETECTED",
+      "rejectedDownloadDenied": true
+    },
+    "downloadTicketExpiry": {
+      "cleanUploadReady": true,
+      "ttlSeconds": 60,
+      "expiredTicketHttp": 403
+    }
   },
   "openbao": {
     "workloadAuthMode": "static Kubernetes Secret token; no Kubernetes auto-auth sidecar",
