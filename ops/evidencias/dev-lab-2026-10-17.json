@@ -87,7 +87,7 @@
     "rejectedFileDownloadCode": "FILE_NOT_READY",
     "rejectedFileRemainsInQuarantine": true,
     "eicarTestScript": "qa/automation/storage-flow.cjs",
-    "eicarFixtureCorrection": "uncommitted harness change; valid ZIP member embedded after supported PNG signature",
+    "eicarFixtureCorrection": "tracked harness correction included in the draft pull request; valid ZIP member embedded after supported PNG signature",
     "priorRawEicarFixtureWasInvalid": true,
     "syntheticQaObjectsRemainInPrivateStorage": true
   },
