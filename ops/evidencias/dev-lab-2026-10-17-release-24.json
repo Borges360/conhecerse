@@ -1,0 +1,275 @@
+{
+  "recordedAt": "2026-10-17T07:02:11Z",
+  "target": "dev lab",
+  "releaseApproved": false,
+  "source": {
+    "commit": "8661385f5f58fdef442337874e70d4160dd05c7c",
+    "jenkinsBuild": 24,
+    "jenkinsTag": "24-8661385",
+    "jenkinsResult": "SUCCESS",
+    "reportedTests": {
+      "totalJUnit": 140,
+      "failed": 0,
+      "skipped": 0
+    },
+    "localLoginRegression": {
+      "typecheck": "passed",
+      "webUnitTests": "24 passed",
+      "productionBuild": "passed",
+      "browserE2E": "3 desktop Chromium and 3 mobile Chromium passed"
+    }
+  },
+  "pipeline": {
+    "sourceSecretScan": "Trivy offline scan passed without Maven Central resolution",
+    "filesystemVulnerabilityScan": "passed",
+    "javaSbomVulnerabilityScan": "passed; no HIGH/CRITICAL findings",
+    "webSbom": "generated",
+    "finalImageScans": {
+      "web": { "highCritical": 0, "secrets": 0 },
+      "api": { "highCritical": 0, "secrets": 0 },
+      "iam": { "highCritical": 0, "secrets": 0 },
+      "antivirus": { "highCritical": 0, "secrets": 0 }
+    },
+    "images": {
+      "web": {
+        "reference": "registry.platform.svc.cluster.local:5000/conhecerse:24-8661385",
+        "digest": "sha256:8c55cb527279946bcdf14d4e2d9f5bfb450fb6774f5d1d886f2a4ce2ab22072c"
+      },
+      "apiAndWorker": {
+        "reference": "registry.platform.svc.cluster.local:5000/conhecerse-api:24-8661385",
+        "digest": "sha256:4466baf2c2fd5843721b5b918aeab48ed20c1537243c75664cafe4bbabd26c5f"
+      },
+      "iam": {
+        "reference": "registry.platform.svc.cluster.local:5000/conhecerse-iam:24-8661385",
+        "digest": "sha256:0a720648028c1e0e61a10f135b922ca435ac5db213ba19819159572643b64bc8"
+      },
+      "antivirus": {
+        "reference": "registry.platform.svc.cluster.local:5000/conhecerse-av:24-8661385",
+        "digest": "sha256:507eaf47f731996695ee3a3cf25ae4f947b1c8e959071c92eca5f5ec5559abdb"
+      }
+    },
+    "capacityGate": "passed pre-migration preflight; this is not the 100 rps/60 minute acceptance run",
+    "flyway": "validated 13 migrations",
+    "deploymentsReady": "5/5 at 1/1",
+    "apiReadyHttp": 200,
+    "webHttp": 200,
+    "dast": {
+      "mode": "passive unauthenticated ZAP baseline",
+      "failures": 0,
+      "warningCategories": 10,
+      "warnings": [
+        { "name": "Cookie No HttpOnly Flag", "instances": 1 },
+        { "name": "Information Disclosure - Sensitive Information in URL", "instances": 3 },
+        { "name": "User Controllable HTML Element Attribute (Potential XSS)", "instances": 8 },
+        { "name": "Big Redirect Detected", "instances": 1 },
+        { "name": "Non-Storable Content", "instances": 9 },
+        { "name": "CSP: Failure to Define Directive with No Fallback", "instances": 8 },
+        { "name": "Modern Web Application", "instances": 1 },
+        { "name": "Authentication Request Identified", "instances": 1 },
+        { "name": "Session Management Response Identified", "instances": 2 },
+        { "name": "Absence of Anti-CSRF Tokens", "instances": 4 }
+      ],
+      "authenticatedCoverage": false,
+      "fullAsvsOrIndependentPentest": false
+    },
+    "dastActive": {
+      "tool": "OWASP ZAP Automation Framework",
+      "version": "2.17.0",
+      "image": "ghcr.io/zaproxy/zaproxy:stable@sha256:5ccfff9a411743ab2615136a2edd7416bec9ce41572fa94e935df38c14adb2b6",
+      "recordedAt": "2026-10-17T07:06:51Z",
+      "baseUrl": "http://conhecerse.lab",
+      "authentication": "none",
+      "excludedPaths": ["http://conhecerse.lab/auth/.*"],
+      "spider": { "discoveredUrls": 66, "maxDepth": 3, "maxChildren": 20, "maxDurationMinutes": 1 },
+      "activeScan": {
+        "strength": "Low",
+        "threshold": "Medium",
+        "maxRuleDurationMinutes": 1,
+        "maxScanDurationMinutes": 2,
+        "delayMs": 100,
+        "threadsPerHost": 2,
+        "exitCode": 0
+      },
+      "report": {
+        "generatedAt": "2026-10-17T07:05:13Z",
+        "sha256": "8f1e0d681ad85a2e29904c278fe4882c4d0b7fab4504e62dd596307bd8ed7276",
+        "localArtifact": ".local/evidence/zap-release24-unauthenticated-active.json"
+      },
+      "alertTypeCount": 4,
+      "alertTypeCountsByRisk": { "medium": 1, "low": 1, "informational": 2 },
+      "highCriticalAlertTypes": 0,
+      "alerts": [
+        { "name": "CSP: style-src unsafe-inline", "risk": "medium", "instances": 5 },
+        { "name": "Big Redirect Detected (Potential Sensitive Information Leak)", "risk": "low", "instances": 1 },
+        { "name": "Modern Web Application", "risk": "informational", "instances": 1 },
+        { "name": "Session Management Response Identified", "risk": "informational", "instances": 1 }
+      ],
+      "redirectTriage": {
+        "path": "/login",
+        "httpStatus": 307,
+        "locationPath": "/api/auth/login",
+        "anonymousResponseBodyBytes": 5849,
+        "emailMarkerObserved": false,
+        "oauthCredentialMarkerObserved": false,
+        "patientDataMarkerObserved": false,
+        "formalFalsePositiveWaiver": false
+      },
+      "authenticatedCoverage": false,
+      "fullAsvsOrIndependentPentest": false,
+      "manualReviewRequired": true
+    }
+  },
+  "gitops": {
+    "repository": "homelab/infra",
+    "path": "infra/k3s/dev/conhecerse.yaml",
+    "commit": "0085c225113760c1b0a8d7c986845c42c051b27b",
+    "argoRevision": "0085c225113760c1b0a8d7c986845c42c051b27b",
+    "argoSync": "Synced",
+    "argoHealth": "Degraded by unrelated publishsys and sistemalux deployments",
+    "allFiveDeploymentsMatchTag": true
+  },
+  "login": {
+    "request": "http://conhecerse.lab/login",
+    "initialHttp": 307,
+    "oidcHost": "conhecerse.lab",
+    "oidcPath": "/auth/realms/conhecerse/protocol/openid-connect/auth",
+    "title": "Entre no seu espaço.",
+    "themeCssHttp": 200,
+    "lightDandelionSvgHttp": 200,
+    "legacyHost": "http://conhecerse-auth.lab/",
+    "legacyHostHttp": 404,
+    "axeWcag22AA": { "desktopViolations": 0, "mobileViolations": 0 },
+    "credentialsEntered": false,
+    "visualEvidence": [
+      ".local/login-live-release24-desktop.png",
+      ".local/login-live-release24-mobile.png"
+    ]
+  },
+  "clusterClock": {
+    "measuredAt": "2026-10-17T06:50:22Z",
+    "reference": "local runner UTC clock",
+    "scheduledNode": "k3s01",
+    "podClockDriftSeconds": -60,
+    "checkedDeployments": ["conhecerse", "conhecerse-api", "conhecerse-worker", "conhecerse-iam", "conhecerse-av"],
+    "note": "QA TOTP was calculated with the measured offset; pod clocks follow the node kernel clock, so node time synchronization requires infrastructure review."
+  },
+  "qaAccounts": {
+    "syntheticProfiles": [
+      "admin",
+      "professional",
+      "secretary",
+      "finance",
+      "patient",
+      "guardian"
+    ],
+    "keycloakTotpLogin": "6/6 using the dedicated Kubernetes QA credential secret; credentials and sessions are not included in evidence",
+    "opaqueHttpOnlyBffSession": "6/6",
+    "roleUiScreens": "6/6 loaded with one main heading and no error alerts",
+    "roleAccessibility": { "standard": "axe-core WCAG 2.2 AA", "criticalOrSeriousViolations": 0, "allViolations": 0 },
+    "syntheticOnly": true
+  },
+  "roleJourneys": {
+    "readOnlyApiMatrixHttp": {
+      "admin": { "members": 200, "patients": 200, "professionals": 200, "payers": 200, "invoices": 200 },
+      "professional": { "members": 403, "patients": 200, "professionals": 200, "payers": 403, "invoices": 200 },
+      "secretary": { "members": 403, "patients": 200, "professionals": 200, "payers": 403, "invoices": 200 },
+      "finance": { "members": 403, "patients": 403, "professionals": 200, "payers": 200, "invoices": 200 },
+      "patient": { "members": 403, "patients": 403, "professionals": 403, "payers": 403, "invoices": 200, "portalMe": 200, "portalAppointments": 200, "portalInvoices": 200 },
+      "guardian": { "members": 403, "patients": 403, "professionals": 403, "payers": 403, "invoices": 200, "portalMe": 200, "portalAppointments": 200, "portalInvoices": 200 }
+    },
+    "readOnlyScreens": {
+      "admin": "organization dashboard",
+      "professional": "assigned patient detail",
+      "secretary": "calendar",
+      "finance": "finance",
+      "patient": "patient portal",
+      "guardian": "guardian portal"
+    },
+    "screensLoadedWithoutErrorAlerts": "6/6",
+    "readOnlyMatrixDataMutated": false,
+    "routeCrawlRelease24": {
+      "target": "conhecerse.lab dev",
+      "readOnlyNavigation": true,
+      "routesVisited": 43,
+      "routesRenderedWithMainAndHeading": 43,
+      "errorAlerts": 0,
+      "byRole": {
+        "admin": { "visited": 10, "rendered": 10 },
+        "professional": { "visited": 11, "rendered": 11 },
+        "secretary": { "visited": 10, "rendered": 10 },
+        "finance": { "visited": 10, "rendered": 10 },
+        "patient": { "visited": 1, "rendered": 1 },
+        "guardian": { "visited": 1, "rendered": 1 }
+      },
+      "syntheticOnly": true
+    },
+    "completionUiWriteRelease24": {
+      "organizationRegistrationSavedAndReread": true,
+      "professionalProfileSavedAndReread": true,
+      "remoteProtocolSubmittedAndReread": true,
+      "axeCriticalOrSeriousViolations": 0,
+      "syntheticTestDataCreated": true,
+      "syntheticOnly": true
+    },
+    "guardianWriteDenialRelease24": {
+      "attempt": "manual payment on synthetic invoice",
+      "http": 403,
+      "invoiceUnchanged": true,
+      "syntheticOnly": true
+    },
+    "guardianPortalReadRelease24": {
+      "appointmentsHttp": 200,
+      "scheduleScopedAppointmentListed": false,
+      "invoiceListHttp": 200,
+      "invoiceCount": 1,
+      "syntheticOnly": true,
+      "finding": "Release 24 did not include a guardian's SCHEDULE-scoped appointment in the portal list; fix is in source and awaits deployment."
+    },
+    "syntheticOnly": true
+  },
+  "filesRelease24": {
+    "recordedAt": "2026-10-17T06:53:17Z",
+    "providerPath": "MinIO + OpenBao Transit + ClamAV application flow",
+    "uploadValidated": true,
+    "encryptedStorageAndDecrypt": true,
+    "downloadChecksum": true,
+    "anonymousApplicationDownloadHttp": 401,
+    "anonymousBucketListHttp": 403,
+    "downloadTicketSingleUse": true,
+    "downloadTicketTtlSeconds": 60,
+    "expiredTicketHttp": 403,
+    "crossOrganizationDownloadHttp": 404,
+    "eicarStatus": "REJECTED/MALWARE_DETECTED",
+    "clamavUnavailableHttp": 503,
+    "clamavUnavailableCode": "MALWARE_SCANNER_UNAVAILABLE",
+    "fileRemainedRetryable": true,
+    "clamavRecoveryReady": true,
+    "recoveryChecksum": true,
+    "syntheticOnly": true
+  },
+  "openbaoRelease24": {
+    "workloadAuthMode": "static Kubernetes Secret token",
+    "tokenSelfRenewRequest": { "http": 200, "renewable": true, "ttlSeconds": 2592000, "policies": ["conhecerse-dev"] },
+    "automaticRenewalOrKubernetesAutoAuth": false,
+    "activeCredentialRevocationTested": false,
+    "transitKeyRotationTested": false,
+    "restoreWithDecryptabilityTested": false
+  },
+  "notValidated": [
+    "K3s node clock synchronization: all five Conhecer-se pods on k3s01 measured 60 seconds behind the runner; review NTP before relying on TOTP and expiry behavior",
+    "authenticated/full-scope DAST, ASVS, independent tenant authorization review, and penetration test",
+    "manual review and remediation of passive ZAP warnings",
+    "MinIO and OpenBao outage/recovery; the ClamAV fail-closed and recovery check passed against release 24",
+    "OpenBao auto-auth/automatic renewal, active workload credential revocation, Transit key rotation, and restore with decryptability verification",
+    "Asaas patient and SaaS sandbox cycles, Resend, WhatsApp Business, Keycloak SMTP, and LiveKit with TURN/Redis/TLS",
+    "human clinical, legal, fiscal, privacy, and commercial approvals",
+    "ICP-Brasil trust chain/CRLs, PDF/A, and legal signature acceptance",
+    "logs/traces/metrics/images DLP expansion",
+    "complete UI write/error/recovery journeys for all six profiles; the release24 route crawl and admin completion flow cover only a subset",
+    "image signing, admission verification, and immutable digest enforcement",
+    "screen-reader, video-room, checkout, and real participant accessibility",
+    "100 rps for 60 minutes, 24 hour soak, and stated latency objectives",
+    "database/object/key restore exercise, measured RPO/RTO, alerting, and incident runbook",
+    "production infrastructure, domain/TLS, secrets operations, and release approval"
+  ]
+}

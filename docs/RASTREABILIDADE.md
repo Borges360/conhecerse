@@ -2,6 +2,8 @@
 
 Atualização de engenharia de 14/10/2026: campos e workflows das lacunas estão implementados em [ISSUE-PSC-017](IMPLEMENTACAO_PENDENCIAS.md), com política em [ADR-017](adr/ADR-017-completar-lacunas.md). Evidência desta execução: `../ops/evidencias/complementacao-local.json`; os aceites externos desta matriz continuam abertos.
 
+**Atualização de evidência do laboratório em 17/10/2026:** Jenkins #24 (`8661385`, `24-8661385`) foi implantado; veja [evidência release24](../ops/evidencias/dev-lab-2026-10-17-release-24.json). Esta evidência atualiza somente o escopo dos cenários citados abaixo; não substitui aprovações externas nem o aceite global de `qa/ACEITE.md`.
+
 Baseline: DECISOES.md → SPECIFICACAO_TECNICA.md → contracts → schema → qa/ACEITE.md. O Word e a especificação consolidada também foram lidos; hashes das fontes estão em `fontes-analisadas.json`. A identidade visual utiliza a prancha original, fontes locais, azuis, areia, monograma e dente-de-leão; ver `IDENTIDADE_VISUAL.md`.
 
 Esta matriz identifica implementação e evidência. Uma rota implementada ou um teste local não equivale à homologação integral de um requisito. O estado de liberação está em `../ops/VALIDACAO_IMPLEMENTACAO.md`.
@@ -42,8 +44,8 @@ Legenda: **L** = cenário exercitado localmente no limite descrito; **P** = evid
 | T-011 | E | Mensagem de contingência e contador implementados; simular falha de sinalização/TURN em homologação. |
 | T-012 | L | Assinatura persiste hash/data; ciphertext e versão testados. |
 | T-013 | L | Escrita em nota assinada rejeitada; adendo em novo registro encadeado. |
-| T-014 | P | Ticket expirado retorna 403 antes de ler storage; completar ciclo real S3/AV/arquivo autorizado. |
-| T-015 | P | Executável e conteúdo PDF ativo recusados pelo detector; completar EICAR, quarentena e limite com ClamAV real. |
+| T-014 | P | Release24 comprovou download autorizado com checksum, ticket de uso único e expiração em 60s (403). Falta confirmar explicitamente cabeçalho de não armazenamento e fluxo de portabilidade/documento completo. |
+| T-015 | P | Release24 rejeitou EICAR com `MALWARE_DETECTED` e negou download; a falha fechada/recuperação do ClamAV também passou. Ainda faltam probes dos formatos/MIME não aceitos e limite máximo em execução real. |
 | T-016 | P | Reconciliação canônica concorrente deduplica ledger; repetir 10 webhooks HTTP autenticados do Asaas sandbox e entrega. |
 | T-017 | L | Estado canônico tardio não regride pagamento SETTLED/fatura PAID. |
 | T-018 | P | Provedor desabilitado mantém fatura OPEN; checkout é intenção PENDING. Falha/reconciliação real no sandbox pendente. |
@@ -56,14 +58,14 @@ Legenda: **L** = cenário exercitado localmente no limite descrito; **P** = evid
 | T-025 | P | Logs sanitizados e canários sintéticos; auditoria DLP de toda a telemetria ainda necessária. |
 | T-026 | L | Pedido de eliminação abre revisão e preserva registro clínico. |
 | T-027 | L | Responsável com review_required perde acesso; nenhum acesso automático a evolução. |
-| T-028 | E | Upload não fica READY sem objeto validado; simular perda de storage e recuperação/DLQ com serviços reais. |
+| T-028 | E | A falha/recuperação do ClamAV passou em release24; a interrupção do storage e reconciliação/DLQ após perda de objeto ainda não foram exercitadas. |
 | T-029 | E | Infra de backup/PITR declarada; drill isolado com objetos e KMS, RPO/RTO medidos. |
-| T-030 | P | Playwright desktop/mobile, axe WCAG2.2 e teclado/modais; screen reader, sala/checkout e participantes reais pendentes. |
+| T-030 | P | Release24 carregou as telas principais dos seis perfis sem violações Axe WCAG 2.2 AA; login desktop/mobile também passou. Screen reader, sala/checkout e participantes reais permanecem pendentes. |
 | T-031 | E | Harness k6 100req/s/60min preparado; executar em staging autorizado com 50 tenants. |
 | T-032 | E | Soak 24h e extrapolação de 75k sessões/semana não executados. |
-| T-033 | P | Brute-force configurado no Keycloak; login/TOTP real testado. Completar seis falhas/15min e recuperação. |
-| T-034 | E | Bucket privado/TLS e download ABAC declarados; tentar URL anônima no bucket implantado. |
-| T-035 | P | SCA/secret scan local e ausência de tokens no BFF; canários em toda a telemetria e imagem final pendentes. |
+| T-033 | P | Seis logins Keycloak/TOTP sintéticos passaram; o cluster mediu desvio de relógio de 60s e o teste compensou esse valor. Antes do aceite real, sincronizar o nó e testar seis falhas/15min, recuperação e não enumeração. |
+| T-034 | L | Release24 confirmou HTTP 403 para listagem anônima do bucket, 401 para download anônimo pela aplicação, download autorizado efêmero e isolamento entre organizações (404). |
+| T-035 | P | Release24 passou Trivy offline no código/SBOMs/imagens finais sem segredos bloqueantes; canários em logs/traces/métricas e DLP integral continuam pendentes. |
 | T-036 | L | Campo sensível bloqueado e HTML sanitizado; nenhum texto clínico em template de mensagem. |
 | T-037 | L | Horário local/DST, gap/ambiguidade, limites e expansão testados. |
 | T-038 | L | Mesmo Idempotency-Key com corpo diferente retorna 409; replay preserva resultado. |

@@ -127,7 +127,7 @@ spec:
   securityContext: {fsGroup: 1000}
   hostAliases:
     - ip: 10.43.41.43
-      hostnames: [conhecerse.lab, conhecerse-auth.lab]
+      hostnames: [conhecerse.lab]
   containers:
     - name: zap
       image: ghcr.io/zaproxy/zaproxy:stable@sha256:5ccfff9a411743ab2615136a2edd7416bec9ce41572fa94e935df38c14adb2b6

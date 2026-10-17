@@ -1949,6 +1949,33 @@ class ApiIntegrationTest {
                         subject,
                         201);
         call(get(base() + "/patients/" + patient), null, guardian, 200);
+        var scheduledAppointment =
+                call(
+                        post(base() + "/appointments"),
+                        appointment(
+                                OffsetDateTime.now(ZoneOffset.of("-03:00"))
+                                        .plusDays(3)
+                                        .withHour(10)
+                                        .withMinute(0)
+                                        .withSecond(0)
+                                        .withNano(0)),
+                        subject,
+                        201);
+        var guardianAppointments =
+                call(get(base() + "/portal/appointments"), null, guardian, 200);
+        assertEquals(1, guardianAppointments.path("items").size());
+        assertEquals(
+                scheduledAppointment.path("id").asText(),
+                guardianAppointments.path("items").get(0).path("id").asText());
+        admin(
+                "update app.guardian_patient_access set access_scope=ARRAY['BILLING'] where id='"
+                        + grant.path("id").asText()
+                        + "'");
+        assertEquals(
+                0,
+                call(get(base() + "/portal/appointments"), null, guardian, 200)
+                        .path("items")
+                        .size());
         call(
                 patch(base() + "/patients/" + patient).header("If-Match", "\"v1\""),
                 object("socialName", "Not permitted"),
@@ -1960,6 +1987,150 @@ class ApiIntegrationTest {
                         + grant.path("id").asText()
                         + "'");
         call(get(base() + "/patients/" + patient), null, guardian, 404);
+        call(get(base() + "/portal/appointments"), null, guardian, 404);
+    }
+
+    @Test
+    void PAT_guardianCanReadInvoicesOnlyWithCurrentBillingScope() throws Exception {
+        String guardian = "guardian-billing-" + UUID.randomUUID();
+        UUID uid = register(guardian);
+        call(
+                post(base() + "/patients/" + patient + "/guardians"),
+                object(
+                        "guardianUserId",
+                        uid,
+                        "relationship",
+                        "SYNTHETIC_BILLING_GUARDIAN",
+                        "accessScope",
+                        List.of("SCHEDULE", "BILLING"),
+                        "evidence",
+                        "SYNTHETIC_BILLING_SCOPE_ONLY"),
+                subject,
+                201);
+        var payer =
+                call(
+                        post(base() + "/payers"),
+                        object(
+                                "fullName",
+                                "Pagador sintético",
+                                "type",
+                                "PF",
+                                "patientId",
+                                patient),
+                        subject,
+                        201);
+        var invoice =
+                call(
+                        post(base() + "/invoices"),
+                        object(
+                                "payerId",
+                                payer.path("id").asText(),
+                                "dueOn",
+                                LocalDate.now().plusDays(1).toString(),
+                                "items",
+                                List.of(
+                                        object(
+                                                "descriptionCode",
+                                                "SYNTHETIC_SESSION",
+                                                "amountCents",
+                                                1000))),
+                        subject,
+                        201);
+        String invoicePath = base() + "/invoices/" + invoice.path("id").asText();
+        call(get(invoicePath), null, guardian, 200);
+        var guardianInvoices = call(get(base() + "/portal/invoices"), null, guardian, 200);
+        assertEquals(1, guardianInvoices.path("items").size(), "billing scope lists the linked invoice");
+        assertEquals(
+                invoice.path("id").asText(),
+                guardianInvoices.path("items").get(0).path("id").asText());
+        admin(
+                "update app.guardian_patient_access set access_scope=ARRAY['SCHEDULE'] where"
+                        + " guardian_user_id='"
+                        + uid
+                        + "' and tenant_id='"
+                        + tenant
+                        + "'");
+        assertEquals(
+                0,
+                call(get(base() + "/portal/invoices"), null, guardian, 200)
+                        .path("items")
+                        .size());
+        call(get(invoicePath), null, guardian, 404);
+    }
+
+    @Test
+    void PAT_guardianPreferencesAreScopedToGuardianEmail() throws Exception {
+        String guardian = "guardian-preferences-" + UUID.randomUUID();
+        UUID uid = register(guardian);
+        call(
+                post(base() + "/patients/" + patient + "/guardians"),
+                object(
+                        "guardianUserId",
+                        uid,
+                        "relationship",
+                        "SYNTHETIC_LEGAL_GUARDIAN",
+                        "accessScope",
+                        List.of("SCHEDULE"),
+                        "evidence",
+                        "SYNTHETIC_PREFERENCES_SCOPE_ONLY"),
+                subject,
+                201);
+
+        String slug = db.one("select slug from app.organizations where id=?", tenant).get("slug").toString();
+        for (String email : List.of("owner@example.invalid", "synthetic@example.invalid")) {
+            var result =
+                    mvc.perform(
+                                    post("/v1/public/newsletter/subscribe")
+                                            .header("Idempotency-Key", UUID.randomUUID())
+                                            .contentType("application/json")
+                                            .content(
+                                                    object(
+                                                                    "orgSlug",
+                                                                    slug,
+                                                                    "email",
+                                                                    email,
+                                                                    "noticeVersion",
+                                                                    "synthetic-v1")
+                                                            .toString()))
+                            .andReturn();
+            assertEquals(
+                    201,
+                    result.getResponse().getStatus(),
+                    result.getResponse().getContentAsString());
+        }
+
+        assertFalse(
+                call(get(base() + "/portal/preferences"), null, guardian, 200)
+                        .path("marketingEmail")
+                        .asBoolean());
+        call(
+                patch(base() + "/portal/preferences").header("If-Match", "\"v1\""),
+                object("marketingEmail", false, "noticeVersion", "synthetic-v1"),
+                guardian,
+                200);
+        assertFalse(
+                call(get(base() + "/portal/preferences"), null, guardian, 200)
+                        .path("marketingEmail")
+                        .asBoolean());
+
+        try (var conn = DriverManager.getConnection(url, user, password);
+                var st =
+                        conn.prepareStatement(
+                                "select unsubscribed_at from app.newsletter_subscriptions where"
+                                        + " tenant_id=? and email_lookup_hmac=?")) {
+            st.setObject(1, tenant);
+            st.setBytes(2, crypto.lookup(tenant, "owner@example.invalid"));
+            try (var rs = st.executeQuery()) {
+                assertTrue(rs.next());
+                assertNotNull(rs.getObject(1), "guardian opt-out unsubscribes guardian email");
+            }
+            st.setObject(1, tenant);
+            st.setBytes(2, crypto.lookup(tenant, "synthetic@example.invalid"));
+            try (var rs = st.executeQuery()) {
+                assertTrue(rs.next());
+                assertNull(rs.getObject(1), "guardian opt-out preserves patient email subscription");
+            }
+        }
     }
 
     @Test

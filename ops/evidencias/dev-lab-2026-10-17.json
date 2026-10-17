@@ -1,0 +1,170 @@
+{
+  "recordedAt": "2026-10-17T01:36:21.359Z",
+  "localDate": "2026-10-16",
+  "timezone": "America/Sao_Paulo",
+  "target": "dev lab",
+  "releaseApproved": false,
+  "source": {
+    "commit": "14ee41e",
+    "jenkinsBuild": 16,
+    "jenkinsResult": "SUCCESS",
+    "reportedTests": {
+      "java": 108,
+      "web": 24,
+      "browser": 6,
+      "total": 138
+    },
+    "trivyHighCritical": 0
+  },
+  "gitops": {
+    "repository": "homelab/infra",
+    "path": "infra/k3s/dev/conhecerse.yaml",
+    "fileSha": "759e62629f0553a678af06df915bcf8da125f7b3",
+    "lastCommit": "c7ecac932fa7a76b975f7ca7db551b69aa930346",
+    "argoRevision": "c7ecac932fa7a76b975f7ca7db551b69aa930346",
+    "imageTag": "16-14ee41e",
+    "images": {
+      "web": "registry.platform.svc.cluster.local:5000/conhecerse:16-14ee41e",
+      "api": "registry.platform.svc.cluster.local:5000/conhecerse-api:16-14ee41e",
+      "worker": "registry.platform.svc.cluster.local:5000/conhecerse-api:16-14ee41e",
+      "iam": "registry.platform.svc.cluster.local:5000/conhecerse-iam:16-14ee41e",
+      "antivirus": "registry.platform.svc.cluster.local:5000/conhecerse-av:16-14ee41e"
+    },
+    "allFiveDeploymentsMatchTag": true
+  },
+  "cluster": {
+    "readyDeployments": "5/5 at 1/1",
+    "apiReadyHttp": 200,
+    "apiHealthHttp": 200,
+    "keycloakDiscoveryHttp": 200,
+    "argoSync": "Synced",
+    "argoHealth": "Degraded",
+    "webHttp": 200,
+    "argoDegradedResources": [
+      {
+        "deployment": "publishsys",
+        "ready": false,
+        "condition": "ProgressDeadlineExceeded",
+        "restarts": 607,
+        "unrelatedToConhecerse": true
+      },
+      {
+        "deployment": "sistemalux",
+        "ready": false,
+        "condition": "ProgressDeadlineExceeded",
+        "restarts": 454,
+        "unrelatedToConhecerse": true
+      }
+    ],
+    "argoHealthReason": "Aggregate Argo app dev includes unrelated publishsys and sistemalux deployments in CrashLoopBackOff; all five conhecerse deployments remain 1/1."
+  },
+  "qaAccounts": {
+    "createdOrExistingSyntheticUsers": [
+      "qa-admin",
+      "qa-professional",
+      "qa-secretary",
+      "qa-finance",
+      "qa-patient",
+      "qa-guardian"
+    ],
+    "keycloakTotpLogin": "6/6",
+    "organizationCounts": {
+      "qa-admin": 7,
+      "qa-professional": 0,
+      "qa-secretary": 0,
+      "qa-finance": 0,
+      "qa-patient": 0,
+      "qa-guardian": 0
+    },
+    "roleWorkflows": "not validated; invitations require configured email delivery",
+    "liveBffSessionAudit": {
+      "recordedAt": "2026-10-17T01:36:21.360Z",
+      "target": "conhecerse.lab dev",
+      "authenticated": 6,
+      "httpOnlySession": 6,
+      "accessAndRefreshTokensExposed": 0,
+      "organizationReadHttp200": 6,
+      "organizationCounts": {
+        "qa-admin": 7,
+        "qa-professional": 0,
+        "qa-secretary": 0,
+        "qa-finance": 0,
+        "qa-patient": 0,
+        "qa-guardian": 0
+      }
+    }
+  },
+  "journeys": {
+    "ownerProfessional": [
+      "patient creation",
+      "appointment scheduling",
+      "clinical note signing",
+      "synthetic manual payment",
+      "content review and publication",
+      "CSRF denial"
+    ],
+    "clinicRegistrationProfileRemoteProtocol": "passed",
+    "axeCriticalOrSerious": 0
+  },
+  "files": {
+    "minioUploadReadback": true,
+    "openbaoTransitEncryptDecrypt": true,
+    "downloadChecksum": true,
+    "anonymousApplicationDownloadHttp": 401,
+    "anonymousBucketListHttp": 403,
+    "downloadTicketSingleUse": true,
+    "downloadTicketExpiresAfter60Seconds": true,
+    "crossOrganizationDownloadHttp": 404,
+    "canonicalEicarZipStatus": "REJECTED",
+    "canonicalEicarFailureCode": "MALWARE_DETECTED",
+    "rejectedFileDownloadHttp": 422,
+    "rejectedFileDownloadCode": "FILE_NOT_READY",
+    "rejectedFileRemainsInQuarantine": true,
+    "eicarTestScript": "qa/automation/storage-flow.cjs",
+    "eicarFixtureCorrection": "tracked harness correction included in the draft pull request; valid ZIP member embedded after supported PNG signature",
+    "priorRawEicarFixtureWasInvalid": true,
+    "syntheticQaObjectsRemainInPrivateStorage": true
+  },
+  "acceptanceCoverage": {
+    "T-001": "partial: cross-organization download returned 404; security-event assertion not made",
+    "T-014": "passed: download ticket expired after 60 seconds",
+    "T-015": "partial: EICAR in ZIP rejected and download blocked; unsupported MIME matrix and quarantine cleanup not tested",
+    "T-034": "passed: anonymous MinIO bucket listing returned 403"
+  },
+  "notValidated": [
+    "storage, antivirus, or vault outage and recovery",
+    "role-specific workflows for all six user profiles",
+    "external provider cycles",
+    "human legal, clinical, fiscal, and commercial approvals",
+    "full DAST/ASVS, independent tenant authorization review, and penetration test",
+    "image signing and admission verification",
+    "screen-reader, video-room, checkout, and participant accessibility",
+    "load, soak, backup restore, RPO, and RTO acceptance",
+    "production infrastructure and operational acceptance",
+    "OpenBao workload credential revocation, operator-authorized key rotation, backup restore, and restored-data decryptability"
+  ],
+  "openbao": {
+    "verifiedAt": "2026-10-17T01:34:12.364Z",
+    "workloadAuthMode": "static Kubernetes Secret token; OpenBao service token created with create-orphan; live Deployment has no Kubernetes auto-auth sidecar",
+    "tokenRenewal": {
+      "selfRenewal": "passed",
+      "ttlBeforeSeconds": 2452582,
+      "ttlAfterSeconds": 2592000,
+      "activeTokenRevocation": "not performed to avoid interrupting the running API",
+      "disposableTokenCreateHttp": 403
+    },
+    "transit": {
+      "key": "conhecerse",
+      "encryptVersionBeforeRotateAttempt": 1,
+      "keyMetadataReadHttp": 403,
+      "rotateHttp": 403,
+      "keyRotationCompleted": false,
+      "oldSyntheticFileReadbackAfterDeniedAttempt": true,
+      "newSyntheticFileEncryptDecryptAfterDeniedAttempt": true
+    },
+    "restore": {
+      "backupRestoreTested": false,
+      "restoredDataDecryptabilityTested": false
+    }
+  }
+}

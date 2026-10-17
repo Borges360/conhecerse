@@ -1,7 +1,7 @@
 environment: staging
 releaseApproved: false
 host: app.example.invalid
-authHost: auth.example.invalid
+authPath: /auth
 tlsSecret: conhecerse-tls
 registry: registry.example.invalid
 tag: ""

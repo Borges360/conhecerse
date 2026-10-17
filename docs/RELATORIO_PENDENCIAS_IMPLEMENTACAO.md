@@ -2,13 +2,15 @@
 
 > Relatório de corte preservado. A implementação posterior das lacunas de código está descrita em [IMPLEMENTACAO_PENDENCIAS.md](IMPLEMENTACAO_PENDENCIAS.md). Homologações externas e condições de produção descritas abaixo permanecem pendentes até evidência real.
 
+> **Atualização de estado em 17/10/2026:** o laboratório está na release24 (Jenkins #24, commit `8661385`, tag `24-8661385`); cinco Deployments 1/1, GitOps `Synced` e `/api/ready` HTTP 200. A seção 5 abaixo preserva o corte de 14/10/2026, quando ainda não havia deploy. Para o estado atual, use [IMPLEMENTACAO_PENDENCIAS.md](IMPLEMENTACAO_PENDENCIAS.md) e a [evidência release24](../ops/evidencias/dev-lab-2026-10-17-release-24.json). Esta atualização não significa aceite de produção.
+
 **Data de corte:** 14/10/2026  
 **Escopo:** baseline PSC-TECH-002 v2.0.0 e seu estado documentado no repositório.  
 **Objetivo:** distinguir lacunas funcionais de código, integrações ainda não homologadas e condições operacionais de liberação.
 
 ## 1. Resumo executivo
 
-A plataforma tem implementação local substancial e cobre os principais domínios da especificação. Isso ainda **não equivale à implementação integral aceita para uso com dados reais**: a própria validação registra `releaseApproved=false`, nenhum deploy remoto realizado e funções condicionadas a gates fechados. A evidência local registra 97 testes Java, 21 testes unitários web, seis cenários de navegador e duas jornadas OIDC com Keycloak real; a jornada vertical não chama o Asaas nem comprova integrações externas. [Validação da implementação](../ops/VALIDACAO_IMPLEMENTACAO.md#L1) · [evidência local](../ops/evidencias/validacao-local.json)
+A plataforma tem implementação local substancial e cobre os principais domínios da especificação. Isso ainda **não equivale à implementação integral aceita para uso com dados reais**: no corte histórico de 14/10, a validação registrava `releaseApproved=false`, nenhum deploy remoto e funções condicionadas a gates fechados. A evidência local daquele corte registra 97 testes Java, 21 testes unitários web, seis cenários de navegador e duas jornadas OIDC com Keycloak real; a jornada vertical não chama o Asaas nem comprova integrações externas. [Validação da implementação](../ops/VALIDACAO_IMPLEMENTACAO.md#L1) · [evidência local](../ops/evidencias/validacao-local.json)
 
 Na matriz de 40 cenários de aceite, 21 estão exercitados localmente (L), 12 têm evidência parcial (P) e sete dependem de execução externa (E). A legenda e os limites de cada cenário estão em [RASTREABILIDADE.md](RASTREABILIDADE.md#L24). Os itens abaixo consolidam esses cenários com lacunas funcionais adicionais identificadas ao comparar a especificação com o contrato da API.
 
@@ -61,7 +63,7 @@ O status abaixo reproduz a matriz de rastreabilidade; **P** indica evidência pa
 
 Referências de estado por cenário: [T-008..019](RASTREABILIDADE.md#L37), [T-020..035](RASTREABILIDADE.md#L49) e [aceite normativo](../qa/ACEITE.md#L15). Os demais cenários estão marcados como exercitados localmente, com os limites registrados na matriz.
 
-## 5. Liberação de ambiente e produção ainda não concluída
+## 5. Liberação de ambiente e produção ainda não concluída — corte de 14/10/2026
 
 Não foram feitos push, primeiro build Jenkins, apply remoto ou deploy. O Docker Engine não estava disponível para construir as imagens finais localmente. Helm/OpenTofu foram validados declarativamente; isso não prova que os contêineres subiram no cluster. O artefato de evidência também registra `releaseApproved=false` e `remoteDeploymentExecuted=false`. [Validação da implementação](../ops/VALIDACAO_IMPLEMENTACAO.md#L24) · [evidência](../ops/evidencias/validacao-local.json)
 

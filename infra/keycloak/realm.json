@@ -1,7 +1,8 @@
 {
   "realm": "conhecerse",
   "enabled": true,
-  "displayName": "Conhecer-se · espaço privado",
+  "displayName": "CONHECER-SE",
+  "loginTheme": "conhecerse",
   "registrationAllowed": true,
   "verifyEmail": true,
   "resetPasswordAllowed": true,
