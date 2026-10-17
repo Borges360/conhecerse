@@ -31,7 +31,7 @@ O QUICKSTART determina: **“Publicar no cluster (...) só quando a mensagem atu
 
 O primeiro build é do operador: `BRANCH=main`, `SKIP_TEST=false`; `DRY_RUN=true` testa e constrói sem push/migração/deploy. O build de implantação usa `DRY_RUN=false`. Não aplicar a pasta `infra/k3s/dev` diretamente com kubectl. Validar probes, GitOps, OIDC, `/api/ready`, AV e KMS antes de atualizar `ESTADO.md`.
 
-As URLs de intranet são `http://conhecerse.lab` e `http://conhecerse-auth.lab`. São exclusivas de desenvolvimento com dados sintéticos. Produção exige TLS e cookies Secure. Se vídeo for habilitado, configurar também `LIVEKIT_URL` no BFF para a CSP e no backend para o adaptador.
+A URL de intranet do laboratório é `http://conhecerse.lab`; a autenticação do Keycloak fica sob `/auth` na mesma origem. É exclusiva de desenvolvimento com dados sintéticos. Produção exige TLS e cookies Secure. Se vídeo for habilitado, configurar também `LIVEKIT_URL` no BFF para a CSP e no backend para o adaptador.
 
 ## Produção declarativa
 

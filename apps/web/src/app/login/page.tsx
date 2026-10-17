@@ -10,7 +10,6 @@ export default async function Login({
   return (
     <main className="login-page" id="conteudo">
       <div className="login-art">
-        <div className="paola-photo" />
         <div className="login-quote">
           <Dandelion size={90} />
           <p>

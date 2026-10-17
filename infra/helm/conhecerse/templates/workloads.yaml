@@ -41,7 +41,7 @@ spec:
           env:
             - {name: APP_ENV, value: {{ $root.Values.environment | quote }}}
             {{- if eq $component "iam" }}
-            - {name: KC_HOSTNAME, value: {{ printf "https://%s" $root.Values.authHost | quote }}}
+            - {name: KC_HOSTNAME, value: {{ printf "https://%s%s" $root.Values.host $root.Values.authPath | quote }}}
             - {name: KC_HTTP_ENABLED, value: "true"}
             - {name: KC_PROXY_HEADERS, value: xforwarded}
             - {name: KC_HEALTH_ENABLED, value: "true"}

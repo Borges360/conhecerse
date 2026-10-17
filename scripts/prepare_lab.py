@@ -28,7 +28,7 @@ update('pipelines/catalog.json',catalog)
 def topology(text):
     text=re.sub(r'conhecerse_dev: [^\n]+','conhecerse_dev: 3840       # web 256 + API 512 + worker 512 + IAM 512 + AV 2048; validar capacidade antes de aplicar',text)
     if 'conhecerse_dev:' not in text:text=text.replace('      lume_dev:', '      conhecerse_dev: 3840       # web 256 + API 512 + worker 512 + IAM 512 + AV 2048; validar capacidade antes de aplicar\n      lume_dev:')
-    if 'conhecerse.lab: ingress' not in text:text=text.replace('    lume.lab: ingress','    conhecerse.lab: ingress\n    conhecerse-auth.lab: ingress\n    lume.lab: ingress')
+    if 'conhecerse.lab: ingress' not in text:text=text.replace('    lume.lab: ingress','    conhecerse.lab: ingress\n    lume.lab: ingress')
     text=re.sub(r'(^    dev: [^\n]+)',lambda m:m[0] if 'conhecerse' in m[0] else m[0]+', conhecerse (web/API/worker/IAM/AV)',text,flags=re.M)
     if '    conhecerse-dev:' not in text:text=text.replace('    lume-dev:', '    conhecerse-dev: build no K3s, deploy no namespace dev (http://conhecerse.lab/)\n    lume-dev:')
     return text
@@ -43,7 +43,7 @@ db_file.write_text(db_text,encoding='utf-8')
 
 env_file=lab/'infra/secrets/apps/conhecerse.env';env_file.parent.mkdir(parents=True,exist_ok=True)
 if not env_file.exists():
-    env={'APP_ENV':'dev','APP_ORIGIN':'http://conhecerse.lab','PUBLIC_URL':'http://conhecerse.lab','OIDC_ISSUER':'http://conhecerse-auth.lab/realms/conhecerse','OIDC_CLIENT_ID':'conhecerse-web','OIDC_AUDIENCE':'conhecerse-api','OIDC_CLIENT_SECRET':secrets.token_urlsafe(36),'BFF_ENCRYPTION_KEY':base64.b64encode(secrets.token_bytes(32)).decode(),'LOOKUP_HMAC_KEY':base64.b64encode(secrets.token_bytes(32)).decode(),'COOKIE_SECURE':'false','ENCRYPTION_PROVIDER':'openbao','BAO_URL':'http://openbao.platform.svc.cluster.local:8200','BAO_TOKEN_FILE':'/var/run/secrets/openbao/token','BAO_TOKEN':'','S3_ENDPOINT':'http://minio.dev.svc.cluster.local:9000','S3_PUBLIC_ENDPOINT':'https://minio.luizfelipeborges.dev','S3_REGION':'sa-east-1','S3_BUCKET':'conhecerse-private','AWS_ACCESS_KEY_ID':'','AWS_SECRET_ACCESS_KEY':'','CLAMAV_HOST':'conhecerse-av.dev.svc.cluster.local','CLAMAV_PORT':'3310','VIDEO_APPROVED':'false','FISCAL_APPROVED':'false','TEMPLATES_APPROVED':'false','KC_BOOTSTRAP_ADMIN_USERNAME':'admin-conhecerse','KC_BOOTSTRAP_ADMIN_PASSWORD':secrets.token_urlsafe(36)}
+    env={'APP_ENV':'dev','APP_ORIGIN':'http://conhecerse.lab','PUBLIC_URL':'http://conhecerse.lab','OIDC_ISSUER':'http://conhecerse.lab/auth/realms/conhecerse','OIDC_CLIENT_ID':'conhecerse-web','OIDC_AUDIENCE':'conhecerse-api','OIDC_CLIENT_SECRET':secrets.token_urlsafe(36),'BFF_ENCRYPTION_KEY':base64.b64encode(secrets.token_bytes(32)).decode(),'LOOKUP_HMAC_KEY':base64.b64encode(secrets.token_bytes(32)).decode(),'COOKIE_SECURE':'false','ENCRYPTION_PROVIDER':'openbao','BAO_URL':'http://openbao.platform.svc.cluster.local:8200','BAO_TOKEN_FILE':'/var/run/secrets/openbao/token','BAO_TOKEN':'','S3_ENDPOINT':'http://minio.dev.svc.cluster.local:9000','S3_PUBLIC_ENDPOINT':'https://minio.luizfelipeborges.dev','S3_REGION':'sa-east-1','S3_BUCKET':'conhecerse-private','AWS_ACCESS_KEY_ID':'','AWS_SECRET_ACCESS_KEY':'','CLAMAV_HOST':'conhecerse-av.dev.svc.cluster.local','CLAMAV_PORT':'3310','VIDEO_APPROVED':'false','FISCAL_APPROVED':'false','TEMPLATES_APPROVED':'false','KC_BOOTSTRAP_ADMIN_USERNAME':'admin-conhecerse','KC_BOOTSTRAP_ADMIN_PASSWORD':secrets.token_urlsafe(36)}
     env_file.write_text('\n'.join(k+'='+v for k,v in env.items())+'\n',encoding='utf-8')
 
 secrets_block=r'''
@@ -142,7 +142,7 @@ Segredos de fornecedores ficam no OpenBao. Bucket privado e credencial limitada 
 for relative in ['infra/dns/adguard/config/AdGuardHome.yaml','infra/dns/adguard/runtime/conf/AdGuardHome.yaml']:
     if (lab/relative).exists():
         def dns(text):
-            for host in ['conhecerse.lab','conhecerse-auth.lab']:
+            for host in ['conhecerse.lab']:
                 rule='||'+host+'^$dnsrewrite=NOERROR;A;192.168.15.252'
                 if rule not in text:
                     if 'user_rules: []' in text:text=text.replace('user_rules: []',"user_rules:\n  - '"+rule+"'")

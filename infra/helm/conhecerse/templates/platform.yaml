@@ -24,7 +24,7 @@ metadata: {name: {{ .Release.Name }}}
 spec:
   ingressClassName: traefik
   tls:
-    - hosts: [{{ .Values.host | quote }}, {{ .Values.authHost | quote }}]
+    - hosts: [{{ .Values.host | quote }}]
       secretName: {{ .Values.tlsSecret }}
   rules:
     - host: {{ .Values.host | quote }}
@@ -36,15 +36,12 @@ spec:
           - path: /v1/webhooks/communications
             pathType: Prefix
             backend: {service: {name: {{ .Release.Name }}-api, port: {name: http}}}
+          - path: {{ .Values.authPath | quote }}
+            pathType: Prefix
+            backend: {service: {name: {{ .Release.Name }}-iam, port: {name: http}}}
           - path: /
             pathType: Prefix
             backend: {service: {name: {{ .Release.Name }}-web, port: {name: http}}}
-    - host: {{ .Values.authHost | quote }}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend: {service: {name: {{ .Release.Name }}-iam, port: {name: http}}}
 {{- if .Values.observability.enabled }}
 ---
 apiVersion: monitoring.coreos.com/v1

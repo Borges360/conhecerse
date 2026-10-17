@@ -102,6 +102,13 @@ spec:
             name: conhecerse-api
             port:
               number: 8080
+      - path: /auth
+        pathType: Prefix
+        backend:
+          service:
+            name: conhecerse-iam
+            port:
+              number: 8080
       - path: /
         pathType: Prefix
         backend:
@@ -353,7 +360,7 @@ spec:
             name: conhecerse-iam
         env:
         - name: KC_HOSTNAME
-          value: http://conhecerse-auth.lab
+          value: http://conhecerse.lab/auth
         - name: KC_HTTP_ENABLED
           value: 'true'
         - name: KC_PROXY_HEADERS
@@ -375,25 +382,6 @@ spec:
   - name: http
     port: 8080
     targetPort: 8080
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: conhecerse-iam
-  namespace: dev
-spec:
-  ingressClassName: traefik
-  rules:
-  - host: conhecerse-auth.lab
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: conhecerse-iam
-            port:
-              number: 8080
 ---
 apiVersion: apps/v1
 kind: Deployment

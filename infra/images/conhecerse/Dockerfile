@@ -36,10 +36,13 @@ EXPOSE 8080
 CMD ["java","-jar","/app/app.jar"]
 FROM quay.io/keycloak/keycloak:26.8.1@sha256:79c623a22abacf3fe6c00a5fb30f5b7843d717b234033b80995891c06116d244 AS iam
 COPY infra/keycloak/realm.json /opt/keycloak/data/import/conhecerse-realm.json
+COPY infra/keycloak/themes/conhecerse /opt/keycloak/themes/conhecerse
+ENV KC_DB=postgres KC_HEALTH_ENABLED=true KC_HTTP_RELATIVE_PATH=/auth
+RUN /opt/keycloak/bin/kc.sh build
 USER 1000
 EXPOSE 8080 9000
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
-CMD ["start","--import-realm"]
+CMD ["start","--optimized","--import-realm"]
 FROM clamav/clamav:1.5.4@sha256:638d90201ee7ee6a82d249a2fc23b132e578673b5f1f2766852b127676ca1ef6 AS av
 USER root
 RUN mkdir -p /run/clamav /var/log/clamav && chown -R clamav:clamav /var/lib/clamav /var/log/clamav /run/clamav /etc/clamav \
