@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-10-17T01:35:56.251Z",
+  "recordedAt": "2026-10-17T01:36:21.359Z",
   "localDate": "2026-10-16",
   "timezone": "America/Sao_Paulo",
   "target": "dev lab",
@@ -69,14 +69,30 @@
     ],
     "keycloakTotpLogin": "6/6",
     "organizationCounts": {
-      "qa-admin": 5,
+      "qa-admin": 7,
       "qa-professional": 0,
       "qa-secretary": 0,
       "qa-finance": 0,
       "qa-patient": 0,
       "qa-guardian": 0
     },
-    "roleWorkflows": "not validated; invitations require configured email delivery"
+    "roleWorkflows": "not validated; invitations require configured email delivery",
+    "liveBffSessionAudit": {
+      "recordedAt": "2026-10-17T01:36:21.360Z",
+      "target": "conhecerse.lab dev",
+      "authenticated": 6,
+      "httpOnlySession": 6,
+      "accessAndRefreshTokensExposed": 0,
+      "organizationReadHttp200": 6,
+      "organizationCounts": {
+        "qa-admin": 7,
+        "qa-professional": 0,
+        "qa-secretary": 0,
+        "qa-finance": 0,
+        "qa-patient": 0,
+        "qa-guardian": 0
+      }
+    }
   },
   "journeys": {
     "ownerProfessional": [
