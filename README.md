@@ -25,7 +25,7 @@ Em três terminais separados:
 .\scripts\run-local.ps1 web
 ```
 
-Abra `http://localhost:3000`. A demonstração está em `/demonstracao/dashboard`; dados reais usam `/app` e `/portal`. Configure SMTP no realm Keycloak para verificação de email e recuperação de conta. Faça o primeiro login, configure TOTP, crie a organização, cadastre/revise o CRP, a disponibilidade e os preços. O diretório público exige opt-in explícito do profissional.
+Abra `http://localhost:3000`. A demonstração está em `/demonstracao/dashboard`; dados reais usam `/app` e `/portal`. Configure SMTP no realm Keycloak para verificação de email e recuperação de conta. Faça o primeiro login, crie a organização, cadastre/revise o CRP, a disponibilidade e os preços. O diretório público exige opt-in explícito do profissional.
 
 Os segredos são gerados em `infra/secrets/local.env`, ignorado pelo Git. O bootstrap guarda recuperação do OpenBao local em arquivo privado; nunca utilize esse material ou o usuário raiz do S3 local em produção. Renove o token local com `scripts/run-local.ps1 renew-kms`. Veja [operação](docs/OPERACAO_IMPLEMENTACAO.md).
 
@@ -75,3 +75,5 @@ Produção: `infra/opentofu` provisiona RDS privado Multi-AZ, buckets privados/K
 A ordem normativa continua: `DECISOES.md`, `SPECIFICACAO_TECNICA.md`, contratos, schema inicial e `qa/ACEITE.md`. [ADR-016](docs/adr/ADR-016-implementacao.md) registra as adaptações de implementação; o Word e a especificação consolidada foram analisados junto às fontes canônicas. [Inventário](docs/fontes-analisadas.json).
 
 Os campos e fluxos pendentes do relatório foram acrescentados por [ADR-017](docs/adr/ADR-017-completar-lacunas.md). Consulte [implementação e configuração](docs/IMPLEMENTACAO_PENDENCIAS.md) para protocolo remoto, portabilidade, responsáveis, acesso emergencial, mensalidade SaaS, assinaturas e callbacks de mensagens. As migrações novas são expansivas; credenciais e homologações reais continuam obrigatórias.
+
+A autenticação da equipe e do portal por senha está registrada no [ADR-018](docs/adr/ADR-018-autenticacao-equipe-senha.md). As pendências de entrega e o alcance das evidências estão na [reespecificação](docs/REESPECIFICACAO_PENDENCIAS.md).

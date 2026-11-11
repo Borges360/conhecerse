@@ -2,11 +2,11 @@
 
 Atualização de engenharia de 14/10/2026: campos e workflows das lacunas estão implementados em [ISSUE-PSC-017](IMPLEMENTACAO_PENDENCIAS.md), com política em [ADR-017](adr/ADR-017-completar-lacunas.md). Evidência desta execução: `../ops/evidencias/complementacao-local.json`; os aceites externos desta matriz continuam abertos.
 
-**Atualização de evidência do laboratório em 17/10/2026:** Jenkins #24 (`8661385`, `24-8661385`) foi implantado; veja [evidência release24](../ops/evidencias/dev-lab-2026-10-17-release-24.json). Esta evidência atualiza somente o escopo dos cenários citados abaixo; não substitui aprovações externas nem o aceite global de `qa/ACEITE.md`.
+Os resultados do laboratório #24 (`24-8661385`) constam no [registro versionado](../ops/evidencias/dev-lab-2026-10-17-release-24.json). A [reespecificação de 10/11/2026](REESPECIFICACAO_PENDENCIAS.md) consolida as pendências de entrega, incorpora os registros locais posteriores de #25 e do ensaio de login por senha e indica o alcance de cada evidência.
 
 Baseline: DECISOES.md → SPECIFICACAO_TECNICA.md → contracts → schema → qa/ACEITE.md. O Word e a especificação consolidada também foram lidos; hashes das fontes estão em `fontes-analisadas.json`. A identidade visual utiliza a prancha original, fontes locais, azuis, areia, monograma e dente-de-leão; ver `IDENTIDADE_VISUAL.md`.
 
-Esta matriz identifica implementação e evidência. Uma rota implementada ou um teste local não equivale à homologação integral de um requisito. O estado de liberação está em `../ops/VALIDACAO_IMPLEMENTACAO.md`.
+Esta matriz registra o alcance da evidência por cenário. O aceite integral segue os [critérios de liberação](../qa/ACEITE.md#critérios-para-liberar-produção-todos-sem-exceção).
 
 ## Requisitos e componentes
 
@@ -19,15 +19,15 @@ Esta matriz identifica implementação e evidência. Uma rota implementada ou um
 | CLI-001..008 | `clinical/ClinicalModule`, autosave cifrado, autor do rascunho, assinatura/hash/adendo, RLS e anexos separados | API real com PostgreSQL, ciphertext vinculado a tenant/registro/revisão, imutabilidade e material restrito segregado. Pacote de acesso preparado/revisado pelo profissional; retenção depende de parecer. |
 | BIL-001..010 | `billing/BillingModule`, preços vigentes, payer distinto, fatura/ledger, checkout externo, `integrations/IntegrationsModule`, inbox/outbox e reconciliação | Pagamento manual vertical, replay/ordem/refund canônicos sintéticos, intenção nunca marca PAID. Asaas sandbox e chargeback integral ainda não homologados. Assinatura SaaS não mistura recursos da clínica. |
 | GOV-001..005 | `receipts/ReceiptsModule`, elegibilidade, cópia individual, site oficial, declaração e revisão local, gates fiscais | Pagador/beneficiário e RECEIPT_PENDING testados. Não armazena credenciais gov.br nem emite recibo oficial. Validação fiscal e comprovante real externos. |
-| DOC-001..005 | `documents/DocumentsModule`, modelos versionados, aprovação humana, PDF marcado rascunho, assinatura externa, upload/revisão/publicação/revogação | PDF com acentos testado; gate global e por tenant. Não afirma PAdES/PDF-A ou validade jurídica sem homologação; templates não aprovados não são liberados. |
-| COM-001..007 | `worker/WorkerEngine`, `communications/CommunicationGateway`, templates mínimos, consentimento separado, notificações deduplicadas, lembretes, retry/DLQ, relatório diário | Unicidade concorrente do relatório e consentimento/opt-out testados. Resend/WhatsApp, callbacks de entrega e observação dos SLOs dependem de contas/templates reais. |
-| CNT-001..004 | `content/ContentModule`, biblioteca/compartilhamento, revisão de HTML, blog público, newsletter double opt-in/descadastro | Sanitização XSS e bloqueio de campos sensíveis, consentimentos e publicação testados. Bounce management e operação de campanha exigem homologação do provedor. Sem perfil de saúde mental em analytics. |
-| SEC-001..015 | RLS FORCE, papéis separados, `shared/Access`, PKCE/TOTP/BFF/CSRF, criptografia OpenBao, ABAC download, CSP, secrets externos, SCA/SBOM | Autorização real local e OIDC/TOTP reais. Emergência não concede bypass automático. Pentest independente, DLP integral, assinatura das imagens e exercícios operacionais pendentes. |
+| DOC-001..005 | `documents/DocumentsModule`, modelos versionados, aprovação humana, PDF de rascunho, upload/revisão/publicação/revogação e verificador PAdES/CMS | Geração de PDF e verificação com certificados sintéticos exercitadas. Aprovação de templates, cadeia/CRLs operacionais e PDF/A quando aplicável exigem aceite próprio. |
+| COM-001..007 | `worker/WorkerEngine`, `communications/CommunicationGateway`, consentimento separado, notificações deduplicadas, callbacks autenticados, supressão, retry/DLQ e relatório diário | Unicidade concorrente do relatório, opt-out e autenticação de callbacks testados. Entrega Resend/WhatsApp e medição dos SLOs dependem de contas/templates reais. |
+| CNT-001..004 | `content/ContentModule`, biblioteca/compartilhamento, revisão de HTML, blog, newsletter double opt-in/descadastro e contagem diária agregada | Sanitização, bloqueio de campos sensíveis, consentimentos e agregação testados. Bounce e operação de campanha exigem homologação do provedor. |
+| SEC-001..015 | RLS FORCE, papéis separados, `shared/Access`, PKCE/BFF/CSRF, criptografia OpenBao, ABAC no download, acesso emergencial restrito, CSP e SCA/SBOM | Autorização e OIDC exercitados. O login por senha foi decidido no [ADR-018](adr/ADR-018-autenticacao-equipe-senha.md), com pareceres pendentes. A assinatura de imagens e o auto-auth do OpenBao estão implementados, sem execução no laboratório ou no candidato. Pentest independente e DLP integral seguem pendentes. |
 | NFR-001..013 | Helm/NetworkPolicy/probes/metrics, OpenTofu Multi-AZ/PITR/S3/Redis/LiveKit, workers idempotentes e scripts de carga | Validação declarativa executada. Disponibilidade, latência sob carga, RPO/RTO, retenção de telemetria e SLOs só podem ser aceitos em infraestrutura implantada e observada. |
 
 ## Cenários de aceite
 
-Legenda: **L** = cenário exercitado localmente no limite descrito; **P** = evidência parcial; **E** = depende de execução externa. Responsável por L: engenharia. E exige operação/segurança/fornecedor ou especialista indicado. Nenhum E é dispensado.
+**L** indica o cenário exercitado no limite descrito, localmente ou no laboratório. **P** indica evidência parcial. **E** indica que o cenário principal depende de execução externa. Engenharia mantém as evidências técnicas. Operação, segurança, fornecedores e especialistas participam dos aceites correspondentes.
 
 | Cenário | Estado | Evidência / próximo aceite |
 | --- | --- | --- |
@@ -57,13 +57,13 @@ Legenda: **L** = cenário exercitado localmente no limite descrito; **P** = evid
 | T-024 | L | Execuções concorrentes resultam em relatório único por tenant/data/tipo. |
 | T-025 | P | Logs sanitizados e canários sintéticos; auditoria DLP de toda a telemetria ainda necessária. |
 | T-026 | L | Pedido de eliminação abre revisão e preserva registro clínico. |
-| T-027 | L | Responsável com review_required perde acesso; nenhum acesso automático a evolução. |
+| T-027 | L | `review_required` nega acesso e a leitura direta de evolução é bloqueada. A regressão local verifica listagem com `SCHEDULE` e remoção desse acesso; #25 registrou a leitura positiva no laboratório. Ver T-046 para liberação clínica individual. |
 | T-028 | E | A falha/recuperação do ClamAV passou em release24; a interrupção do storage e reconciliação/DLQ após perda de objeto ainda não foram exercitadas. |
 | T-029 | E | Infra de backup/PITR declarada; drill isolado com objetos e KMS, RPO/RTO medidos. |
 | T-030 | P | Release24 carregou as telas principais dos seis perfis sem violações Axe WCAG 2.2 AA; login desktop/mobile também passou. Screen reader, sala/checkout e participantes reais permanecem pendentes. |
 | T-031 | E | Harness k6 100req/s/60min preparado; executar em staging autorizado com 50 tenants. |
 | T-032 | E | Soak 24h e extrapolação de 75k sessões/semana não executados. |
-| T-033 | P | Seis logins Keycloak/TOTP sintéticos passaram; o cluster mediu desvio de relógio de 60s e o teste compensou esse valor. Antes do aceite real, sincronizar o nó e testar seis falhas/15min, recuperação e não enumeração. |
+| T-033 | P | #24 registrou desvio de relógio de 60 s e o ensaio compensou esse valor. O registro local posterior cobre seis perfis autenticados por senha. A política está no [ADR-018](adr/ADR-018-autenticacao-equipe-senha.md). Falta sincronizar o relógio do nó e testar seis falhas em 15 min, recuperação e ausência de enumeração no candidato. |
 | T-034 | L | Release24 confirmou HTTP 403 para listagem anônima do bucket, 401 para download anônimo pela aplicação, download autorizado efêmero e isolamento entre organizações (404). |
 | T-035 | P | Release24 passou Trivy offline no código/SBOMs/imagens finais sem segredos bloqueantes; canários em logs/traces/métricas e DLP integral continuam pendentes. |
 | T-036 | L | Campo sensível bloqueado e HTML sanitizado; nenhum texto clínico em template de mensagem. |
@@ -71,6 +71,17 @@ Legenda: **L** = cenário exercitado localmente no limite descrito; **P** = evid
 | T-038 | L | Mesmo Idempotency-Key com corpo diferente retorna 409; replay preserva resultado. |
 | T-039 | L | Sem If-Match retorna 428; versão antiga é rejeitada. |
 | T-040 | L | Portal conserva IDs e vínculos independentes entre clínicas. |
+| T-041 | L | Teste de integração cobre acesso emergencial com duas aprovações independentes, escopo, expiração e registro de revogação após expirar. Demonstrar revogação durante vigência e obter aceite de segurança e do responsável clínico. |
+| T-042 | L | Cadastro ampliado, minimização de contato de emergência e revisão do perfil exercitados localmente. #24 confirmou cadastro e perfil administrativo após escrita no laboratório. |
+| T-043 | L | Protocolo cifrado, autorização e revisão exercitadas localmente. #24 salvou e releu o protocolo. Homologação clínica e contingência com provedor seguem abertas. |
+| T-044 | L | Teste de integração exercita feriado, limite diário e histórico de configurações. |
+| T-045 | L | Teste de integração verifica contagem agregada por conteúdo/dia. O aceite de privacidade inclui auditoria da coleta no ambiente candidato. |
+| T-046 | L | Teste de integração exige revisões jurídica e clínica independentes e mantém bloqueada a leitura clínica direta. Parecer e jornada de entrega ao responsável continuam pendentes. |
+| T-047 | P | Teste de integração nega conclusão sem entrega e preparação pelo próprio titular. Falta demonstrar preparação PDF/JSON, revisão, download autenticado, expiração/revogação e conclusão auditada com storage/AV reais. |
+| T-048 | P | Teste de integração cobre bloqueio sem configuração/aprovação. Adesão, renovação, conciliação e cancelamento dependem da conta SaaS sandbox e das decisões comerciais. |
+| T-049 | P | Assinatura, cadeia e revogação exercitadas com certificados sintéticos. Falta homologar certificados ICP-Brasil, CRLs operacionais e os formatos de emissão aplicáveis. |
+| T-050 | P | Testes exercitam adulteração e timestamp Svix expirado. Falta comprovar entrega, bounce, duplicidade/ordenação, supressão, limites e DLQ com fornecedores reais. |
+| T-051 | L | Testes locais e [laboratório #22](../ops/evidencias/dev-lab-2026-10-17-release-22.json) registram escopo `BILLING` e preferências do responsável. #24 registrou pagamento negado sem alteração da fatura. |
 
 ## Condições de liberação
 

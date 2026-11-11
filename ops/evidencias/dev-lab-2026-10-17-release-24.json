@@ -247,6 +247,22 @@
     "recoveryChecksum": true,
     "syntheticOnly": true
   },
+  "filesRepeatRelease24": {
+    "recordedAt": "2026-10-17T07:26:14Z",
+    "providerPath": "MinIO + OpenBao Transit + ClamAV application flow",
+    "uploadValidated": true,
+    "encryptedStorageAndDecrypt": true,
+    "downloadChecksum": true,
+    "anonymousApplicationDownloadHttp": 401,
+    "downloadTicketSingleUse": true,
+    "downloadTicketTtlSeconds": 60,
+    "expiredTicketHttp": 403,
+    "crossOrganizationDownloadHttp": 404,
+    "eicarStatus": "REJECTED/MALWARE_DETECTED",
+    "syntheticOrganizations": 1,
+    "syntheticOnly": true,
+    "releaseApproved": false
+  },
   "openbaoRelease24": {
     "workloadAuthMode": "static Kubernetes Secret token",
     "tokenSelfRenewRequest": { "http": 200, "renewable": true, "ttlSeconds": 2592000, "policies": ["conhecerse-dev"] },
