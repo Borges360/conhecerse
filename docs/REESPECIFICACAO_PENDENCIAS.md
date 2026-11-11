@@ -14,12 +14,12 @@ Atualização em 11/11/2026: o [ADR-018](adr/ADR-018-autenticacao-equipe-senha.m
 | Laboratório #25, `25-8177286` | O registro local informa Jenkins `SUCCESS`, cinco deployments 1/1, GitOps sincronizado e readiness HTTP 200. A regressão de `SCHEDULE` do responsável teve leitura positiva no laboratório. O registro também inclui ciclo sintético de arquivos e navegação somente leitura por 43 rotas. | A matriz de API por papel agregada nesse JSON foi coletada antes do registro da #24. A leitura positiva de agenda comprova o recorte exercitado, e o teste de remoção de `SCHEDULE` está no código. O resultado de pipeline pertence ao commit `8177286`, anterior a `093bade`. |
 | Ensaio posterior de login por senha, 17/10 | O registro local informa autenticação de seis perfis sintéticos no laboratório e 110 testes Java aprovados, com tags próprias de imagens. | O registro fornece tags, sem SHA de código ou build Jenkins associado. A evidência fica restrita ao ensaio de laboratório e à configuração exercitada. |
 
-Os dois últimos registros eram arquivos locais sem rastreamento Git na revisão e passaram a ser versionados sem alteração. Para conferir a proveniência, estes são os SHA-256 observados na revisão:
+Os dois últimos registros eram arquivos locais sem rastreamento Git na revisão e passaram a ser versionados com o mesmo conteúdo. O Git normaliza os finais de linha para LF; por isso o hash do arquivo de login difere entre a cópia local, com CRLF, e o blob versionado.
 
-| Arquivo em `ops/evidencias/` | SHA-256 |
-| --- | --- |
-| `dev-lab-2026-10-17-release-25.json` | `690532044991262672447e9117fbceb26738127d3944429ea9599796f5f7f96a` |
-| `password-login-2026-10-17.json` | `b37171e245fd449ef34572f564512987268a9eda72546f3b0fe32689b6b11e38` |
+| Arquivo em `ops/evidencias/` | SHA-256 do arquivo local na revisão | SHA-256 do blob versionado |
+| --- | --- | --- |
+| `dev-lab-2026-10-17-release-25.json` | `690532044991262672447e9117fbceb26738127d3944429ea9599796f5f7f96a` | igual |
+| `password-login-2026-10-17.json` | `b37171e245fd449ef34572f564512987268a9eda72546f3b0fe32689b6b11e38` | `a0b54e2b97a91754aecbdd74ab37f59751eed5028576b7b023e3bce997558038` |
 
 ## Implementação e configuração pendentes
 
