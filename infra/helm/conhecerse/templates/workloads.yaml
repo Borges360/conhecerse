@@ -2,13 +2,17 @@
 {{- fail "Produção exige todas as evidências de qa/ACEITE.md e releaseApproved=true após revisão humana." -}}
 {{- end -}}
 {{- $root := . -}}
+{{- $candidate := has .Values.environment (list "staging" "production") -}}
+{{- if and $candidate (not .Values.imageSignature.enforce) -}}
+{{- fail "Staging e produção exigem verificação de assinatura na admissão (imageSignature.enforce=true)." -}}
+{{- end -}}
 {{- $tag := required "Uma tag imutável de release é obrigatória" .Values.tag -}}
 {{- range $component := list "web" "api" "worker" "iam" "av" }}
 {{- $name := printf "%s-%s" $root.Release.Name $component }}
 {{- $image := ternary "api" $component (eq $component "worker") }}
 {{- $digest := index $root.Values.imageDigests $image | default "" }}
-{{- if and (eq $root.Values.environment "production") (not (regexMatch "^sha256:[a-f0-9]{64}$" $digest)) }}
-{{- fail (printf "Produção exige digest OCI imutável válido para %s após scan e assinatura." $image) }}
+{{- if and $candidate (not (regexMatch "^sha256:[a-f0-9]{64}$" $digest)) }}
+{{- fail (printf "Staging e produção exigem digest OCI imutável válido para %s após scan e assinatura." $image) }}
 {{- end }}
 ---
 apiVersion: apps/v1
@@ -27,6 +31,28 @@ spec:
     spec:
       serviceAccountName: {{ $root.Release.Name }}
       securityContext: {runAsNonRoot: true, fsGroup: 1001, seccompProfile: {type: RuntimeDefault}}
+      {{- if or (eq $component "api") (eq $component "worker") }}
+      initContainers:
+        # Native sidecar: starts before the app and keeps renewing the OpenBao token obtained by Kubernetes auth.
+        - name: bao-agent
+          image: {{ $root.Values.openbao.image | quote }}
+          restartPolicy: Always
+          args: [agent, -config=/bao/config/agent.hcl]
+          env:
+            - {name: BAO_ADDR, value: {{ $root.Values.openbao.url | quote }}}
+            - {name: SKIP_SETCAP, value: "true"}
+            - {name: SKIP_CHOWN, value: "true"}
+          securityContext: {runAsNonRoot: true, runAsUser: 1001, allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+          resources: {requests: {cpu: 25m, memory: 64Mi}, limits: {memory: 128Mi}}
+          startupProbe:
+            exec: {command: [/bin/sh, -c, "test -s /var/run/secrets/openbao/token"]}
+            periodSeconds: 5
+            failureThreshold: 60
+          volumeMounts:
+            - {name: bao-token, mountPath: /var/run/secrets/openbao}
+            - {name: bao-config, mountPath: /bao/config, readOnly: true}
+            - {name: workload-jwt, mountPath: /var/run/secrets/workload, readOnly: true}
+      {{- end }}
       containers:
         - name: app
           image: "{{ $root.Values.registry }}/conhecerse{{ if ne $image "web" }}-{{ $image }}{{ end }}{{ if $digest }}@{{ $digest }}{{ else }}:{{ $tag }}{{ end }}"
@@ -71,18 +97,8 @@ spec:
             periodSeconds: 20
           {{- if or (eq $component "api") (eq $component "worker") }}
           volumeMounts: [{name: bao-token, mountPath: /var/run/secrets/openbao, readOnly: true}]
-        - name: bao-agent
-          image: {{ $root.Values.openbao.image | quote }}
-          args: [agent, -config=/bao/config/agent.hcl]
-          env: [{name: BAO_ADDR, value: {{ $root.Values.openbao.url | quote }}}]
-          securityContext: {runAsUser: 1001, allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
-          resources: {requests: {cpu: 25m, memory: 64Mi}, limits: {memory: 128Mi}}
-          volumeMounts:
-            - {name: bao-token, mountPath: /var/run/secrets/openbao}
-            - {name: bao-config, mountPath: /bao/config, readOnly: true}
-            - {name: workload-jwt, mountPath: /var/run/secrets/workload, readOnly: true}
       volumes:
-        - {name: bao-token, emptyDir: {medium: Memory}}
+        - {name: bao-token, emptyDir: {medium: Memory, sizeLimit: 1Mi}}
         - {name: bao-config, configMap: {name: {{ $root.Release.Name }}-bao}}
         - name: workload-jwt
           projected:

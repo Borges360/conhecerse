@@ -1,4 +1,5 @@
-# Prepared only; publish through gitops-publish.ps1. Total application memory limits: 3840 MiB.
+# Prepared only; publish through gitops-publish.ps1. Total application memory limits: 4096 MiB,
+# including the two OpenBao agent sidecars. Configure the OpenBao role conhecerse-dev before syncing.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -117,6 +118,42 @@ spec:
             port:
               number: 3000
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: conhecerse-workload
+  namespace: dev
+  labels:
+    part-of: conhecerse
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: conhecerse-bao-agent
+  namespace: dev
+  labels:
+    part-of: conhecerse
+data:
+  agent.hcl: |
+    exit_after_auth = false
+    pid_file = "/tmp/bao-agent.pid"
+    auto_auth {
+      method "kubernetes" {
+        mount_path = "auth/kubernetes"
+        config = {
+          role = "conhecerse-dev"
+          token_path = "/var/run/secrets/workload/token"
+        }
+      }
+      sink "file" {
+        config = {
+          path = "/var/run/secrets/openbao/token"
+          mode = 0600
+        }
+      }
+    }
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -142,11 +179,56 @@ spec:
         app: conhecerse-api
         part-of: conhecerse
     spec:
+      serviceAccountName: conhecerse-workload
       automountServiceAccountToken: false
       securityContext:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+      - name: bao-agent
+        image: openbao/openbao:2.7.1@sha256:6d2b93856e3fcf7b18ad855a0b51eaba474dc8b79cf554379ea32034797d2acf
+        restartPolicy: Always
+        args:
+        - agent
+        - -config=/bao/config/agent.hcl
+        env:
+        - name: BAO_ADDR
+          value: http://openbao.platform.svc.cluster.local:8200
+        - name: SKIP_SETCAP
+          value: 'true'
+        - name: SKIP_CHOWN
+          value: 'true'
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            memory: 128Mi
+        startupProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - test -s /var/run/secrets/openbao/token
+          periodSeconds: 5
+          failureThreshold: 60
+        volumeMounts:
+        - name: bao-token
+          mountPath: /var/run/secrets/openbao
+        - name: bao-config
+          mountPath: /bao/config
+          readOnly: true
+        - name: workload-jwt
+          mountPath: /var/run/secrets/workload
+          readOnly: true
       containers:
       - name: app
         image: registry.platform.svc.cluster.local:5000/conhecerse-api:aguardando-primeiro-build
@@ -194,9 +276,19 @@ spec:
           readOnly: true
       volumes:
       - name: bao-token
-        secret:
-          secretName: conhecerse-bao-token
-          optional: true
+        emptyDir:
+          medium: Memory
+          sizeLimit: 1Mi
+      - name: bao-config
+        configMap:
+          name: conhecerse-bao-agent
+      - name: workload-jwt
+        projected:
+          sources:
+          - serviceAccountToken:
+              path: token
+              audience: openbao
+              expirationSeconds: 3600
 ---
 apiVersion: v1
 kind: Service
@@ -236,11 +328,56 @@ spec:
         app: conhecerse-worker
         part-of: conhecerse
     spec:
+      serviceAccountName: conhecerse-workload
       automountServiceAccountToken: false
       securityContext:
         fsGroup: 1001
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+      - name: bao-agent
+        image: openbao/openbao:2.7.1@sha256:6d2b93856e3fcf7b18ad855a0b51eaba474dc8b79cf554379ea32034797d2acf
+        restartPolicy: Always
+        args:
+        - agent
+        - -config=/bao/config/agent.hcl
+        env:
+        - name: BAO_ADDR
+          value: http://openbao.platform.svc.cluster.local:8200
+        - name: SKIP_SETCAP
+          value: 'true'
+        - name: SKIP_CHOWN
+          value: 'true'
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1001
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            memory: 128Mi
+        startupProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - test -s /var/run/secrets/openbao/token
+          periodSeconds: 5
+          failureThreshold: 60
+        volumeMounts:
+        - name: bao-token
+          mountPath: /var/run/secrets/openbao
+        - name: bao-config
+          mountPath: /bao/config
+          readOnly: true
+        - name: workload-jwt
+          mountPath: /var/run/secrets/workload
+          readOnly: true
       containers:
       - name: app
         image: registry.platform.svc.cluster.local:5000/conhecerse-api:aguardando-primeiro-build
@@ -288,9 +425,19 @@ spec:
           readOnly: true
       volumes:
       - name: bao-token
-        secret:
-          secretName: conhecerse-bao-token
-          optional: true
+        emptyDir:
+          medium: Memory
+          sizeLimit: 1Mi
+      - name: bao-config
+        configMap:
+          name: conhecerse-bao-agent
+      - name: workload-jwt
+        projected:
+          sources:
+          - serviceAccountToken:
+              path: token
+              audience: openbao
+              expirationSeconds: 3600
 ---
 apiVersion: apps/v1
 kind: Deployment

@@ -6,6 +6,11 @@ tlsSecret: conhecerse-tls
 registry: registry.example.invalid
 tag: ""
 imageDigests: {web: "", api: "", iam: "", av: ""}
+# SEC-013: Sigstore policy-controller admission. publicKey is the PEM from `cosign public-key`
+# of the pipeline credential conhecerse-cosign-key (public material only).
+imageSignature:
+  enforce: true
+  publicKey: ""
 replicas: {web: 2, api: 2, worker: 2, iam: 2, av: 1}
 secrets: {web: conhecerse-web, api: conhecerse-app, iam: conhecerse-iam}
 resources:

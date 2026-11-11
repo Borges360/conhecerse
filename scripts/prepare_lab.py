@@ -26,8 +26,8 @@ def catalog(text):
 update('pipelines/catalog.json',catalog)
 
 def topology(text):
-    text=re.sub(r'conhecerse_dev: [^\n]+','conhecerse_dev: 3840       # web 256 + API 512 + worker 512 + IAM 512 + AV 2048; validar capacidade antes de aplicar',text)
-    if 'conhecerse_dev:' not in text:text=text.replace('      lume_dev:', '      conhecerse_dev: 3840       # web 256 + API 512 + worker 512 + IAM 512 + AV 2048; validar capacidade antes de aplicar\n      lume_dev:')
+    text=re.sub(r'conhecerse_dev: [^\n]+','conhecerse_dev: 4096       # web 256 + API 512 + worker 512 + IAM 512 + AV 2048 + agentes OpenBao 256; validar capacidade antes de aplicar',text)
+    if 'conhecerse_dev:' not in text:text=text.replace('      lume_dev:', '      conhecerse_dev: 4096       # web 256 + API 512 + worker 512 + IAM 512 + AV 2048 + agentes OpenBao 256; validar capacidade antes de aplicar\n      lume_dev:')
     if 'conhecerse.lab: ingress' not in text:text=text.replace('    lume.lab: ingress','    conhecerse.lab: ingress\n    lume.lab: ingress')
     text=re.sub(r'(^    dev: [^\n]+)',lambda m:m[0] if 'conhecerse' in m[0] else m[0]+', conhecerse (web/API/worker/IAM/AV)',text,flags=re.M)
     if '    conhecerse-dev:' not in text:text=text.replace('    lume-dev:', '    conhecerse-dev: build no K3s, deploy no namespace dev (http://conhecerse.lab/)\n    lume-dev:')
@@ -77,7 +77,7 @@ secrets_block=r'''
         Apply-Secret 'platform' 'conhecerse-dev-db' @{
             'DB_URL' = $conDb; 'MIGRATOR_USER' = $s['postgres_conhecerse_migrator_user']; 'MIGRATOR_PASSWORD' = $s['postgres_conhecerse_migrator_password']
         }
-        if ($con['BAO_TOKEN']) { Apply-Secret 'dev' 'conhecerse-bao-token' @{ 'token' = $con['BAO_TOKEN'] } }
+        # SEC-012: API/worker autenticam no OpenBao pelo agente com token projetado; nenhum token estático é provisionado.
     }
 '''
 def apply_script(text):
@@ -136,7 +136,7 @@ update('playbooks/credenciais.md',lambda text:append_once(text,'apps/conhecerse.
 | Fonte | Materialização |
 | --- | --- |
 | `db.yml`, `postgres_conhecerse_*` | Papéis separados runtime, migrator, BFF e IAM; bancos `conhecerse` e `conhecerse_iam` no db01 |
-| `apps/conhecerse.env` | `dev/conhecerse-app`, `dev/conhecerse-web`, `dev/conhecerse-iam`, `platform/conhecerse-dev-db`; `dev/conhecerse-bao-token` quando o token restrito for provisionado |
+| `apps/conhecerse.env` | `dev/conhecerse-app`, `dev/conhecerse-web`, `dev/conhecerse-iam`, `platform/conhecerse-dev-db`; o token do OpenBao vem do role Kubernetes `conhecerse-dev`, sem Secret estático |
 
 Segredos de fornecedores ficam no OpenBao. Bucket privado e credencial limitada do MinIO devem ser provisionados antes do primeiro uso de arquivos. Os campos ausentes não são substituídos por valores de demonstração. Não publicar estes valores em logs.'''))
 for relative in ['infra/dns/adguard/config/AdGuardHome.yaml','infra/dns/adguard/runtime/conf/AdGuardHome.yaml']:
