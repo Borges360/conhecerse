@@ -97,19 +97,6 @@ export function ErrorNotice({
     <div className="notice notice-error" role="alert">
       <TriangleAlert size={20} />
       <span>{message}</span>
-      {message.toLowerCase().includes("segundo fator") && (
-        <a
-          className="text-link"
-          href={
-            "/api/auth/login?reauth=true&next=" +
-            encodeURIComponent(
-              typeof window === "undefined" ? "/app" : window.location.pathname,
-            )
-          }
-        >
-          Verificar meu acesso novamente
-        </a>
-      )}
       {onRetry && (
         <button className="text-button" onClick={onRetry}>
           Tentar novamente

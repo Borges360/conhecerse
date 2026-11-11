@@ -59,7 +59,7 @@ O status abaixo reproduz a matriz de rastreabilidade; **P** indica evidência pa
 | **T-029 (E)** | Fazer restore isolado de banco, objetos e KMS; registrar consistência, RPO e RTO medidos. |
 | **T-030 (P)** | Completar auditoria WCAG 2.2 AA com screen reader, sala e checkout, além de avaliação com participantes reais. |
 | **T-031, T-032 (E)** | Executar carga de 100 req/s durante 60 min com 50 tenants sintéticos e soak de 24 h, validando SLOs e a referência de 75 mil sessões/semana. |
-| **T-033 (P)** | Além do login/TOTP já testado, executar seis falhas em 15 min e validar bloqueio/limitação, recuperação e ausência de enumeração de conta. |
+| **T-033 (P)** | Além do login já testado, executar seis falhas em 15 min e validar bloqueio/limitação, recuperação e ausência de enumeração de conta. |
 
 Referências de estado por cenário: [T-008..019](RASTREABILIDADE.md#L37), [T-020..035](RASTREABILIDADE.md#L49) e [aceite normativo](../qa/ACEITE.md#L15). Os demais cenários estão marcados como exercitados localmente, com os limites registrados na matriz.
 

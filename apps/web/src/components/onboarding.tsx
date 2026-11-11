@@ -119,7 +119,7 @@ export function Onboarding() {
             </div>
             {error && <ErrorNotice message={error} />}
             <div className="form-footer">
-              <span>Seu email e segundo fator devem estar verificados.</span>
+              <span>Seu email deve estar verificado.</span>
               <SaveButton busy={busy}>Criar meu espaço</SaveButton>
             </div>
           </form>

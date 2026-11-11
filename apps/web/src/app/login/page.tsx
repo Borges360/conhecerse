@@ -55,7 +55,7 @@ export default async function Login({
           <div className="login-security">
             <LockKeyhole size={17} />
             <span>
-              Autenticação protegida e verificação em duas etapas para a equipe.
+              Acesso protegido para cuidar de cada encontro.
             </span>
           </div>
           <Link className="text-link" href="/demonstracao">

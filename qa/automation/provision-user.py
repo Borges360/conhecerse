@@ -10,7 +10,7 @@ host=f'{issuer.scheme}://{issuer.netloc}';realm=issuer.path.rsplit('/',1)[-1]
 body=urllib.parse.urlencode({'grant_type':'password','client_id':'admin-cli','username':env['KC_BOOTSTRAP_ADMIN_USERNAME'],'password':env['KC_BOOTSTRAP_ADMIN_PASSWORD']}).encode()
 with urllib.request.urlopen(host+'/realms/master/protocol/openid-connect/token',data=body,timeout=10) as response:token=json.load(response)['access_token']
 fixture={'username':'synthetic-'+secrets.token_hex(8),'password':secrets.token_urlsafe(32),'email':'synthetic-'+secrets.token_hex(8)+'@example.invalid'}
-user={'username':fixture['username'],'email':fixture['email'],'enabled':True,'emailVerified':True,'firstName':'Pessoa','lastName':'Sintética','requiredActions':['CONFIGURE_TOTP'],'credentials':[{'type':'password','value':fixture['password'],'temporary':False}]}
+user={'username':fixture['username'],'email':fixture['email'],'enabled':True,'emailVerified':True,'firstName':'Pessoa','lastName':'Sintética','credentials':[{'type':'password','value':fixture['password'],'temporary':False}]}
 request=urllib.request.Request(host+'/admin/realms/'+realm+'/users',data=json.dumps(user).encode(),headers={'Authorization':'Bearer '+token,'Content-Type':'application/json'},method='POST')
 with urllib.request.urlopen(request,timeout=10) as response:assert response.status==201
 target=Path('.local/oidc-fixture.json');target.parent.mkdir(exist_ok=True);target.write_text(json.dumps(fixture),encoding='utf-8');os.chmod(target,0o600)

@@ -179,9 +179,7 @@ class ApiIntegrationTest {
                                         j ->
                                                 j.subject(sub)
                                                         .claim("email_verified", true)
-                                                        .claim("email", "owner@example.invalid")
-                                                        .claim("amr", List.of("otp"))
-                                                        .claim("auth_time", Instant.now())))
+                                                        .claim("email", "owner@example.invalid")))
                 .header("Idempotency-Key", UUID.randomUUID())
                 .contentType("application/json");
     }
@@ -842,12 +840,7 @@ class ApiIntegrationTest {
         assertEquals(201, first.getResponse().getStatus());
         var builder =
                 post(base() + "/appointments")
-                        .with(
-                                jwt().jwt(
-                                                j ->
-                                                        j.subject(subject)
-                                                                .claim("amr", List.of("otp"))
-                                                                .claim("auth_time", Instant.now())))
+                        .with(jwt().jwt(j -> j.subject(subject)))
                         .contentType("application/json")
                         .header("Idempotency-Key", first.getRequest().getHeader("Idempotency-Key"));
         var replay = mvc.perform(builder.content(body.toString())).andReturn();
@@ -1034,12 +1027,7 @@ class ApiIntegrationTest {
                             String.class,
                             owner.toString());
                     billing.applyCanonical(
-                            new Actor(
-                                    tenant,
-                                    owner,
-                                    Set.of("OWNER"),
-                                    Instant.now(),
-                                    UUID.randomUUID()),
+                            new Actor(tenant, owner, Set.of("OWNER"), UUID.randomUUID()),
                             payment,
                             event,
                             canonical);
@@ -1250,7 +1238,6 @@ class ApiIntegrationTest {
                                                                     tenant,
                                                                     owner,
                                                                     Set.of("OWNER"),
-                                                                    Instant.now(),
                                                                     UUID.randomUUID()),
                                                             LocalDate.now(),
                                                             "America/Sao_Paulo");
@@ -1961,8 +1948,7 @@ class ApiIntegrationTest {
                                         .withNano(0)),
                         subject,
                         201);
-        var guardianAppointments =
-                call(get(base() + "/portal/appointments"), null, guardian, 200);
+        var guardianAppointments = call(get(base() + "/portal/appointments"), null, guardian, 200);
         assertEquals(1, guardianAppointments.path("items").size());
         assertEquals(
                 scheduledAppointment.path("id").asText(),
@@ -2010,13 +1996,7 @@ class ApiIntegrationTest {
         var payer =
                 call(
                         post(base() + "/payers"),
-                        object(
-                                "fullName",
-                                "Pagador sintético",
-                                "type",
-                                "PF",
-                                "patientId",
-                                patient),
+                        object("fullName", "Pagador sintético", "type", "PF", "patientId", patient),
                         subject,
                         201);
         var invoice =
@@ -2039,7 +2019,8 @@ class ApiIntegrationTest {
         String invoicePath = base() + "/invoices/" + invoice.path("id").asText();
         call(get(invoicePath), null, guardian, 200);
         var guardianInvoices = call(get(base() + "/portal/invoices"), null, guardian, 200);
-        assertEquals(1, guardianInvoices.path("items").size(), "billing scope lists the linked invoice");
+        assertEquals(
+                1, guardianInvoices.path("items").size(), "billing scope lists the linked invoice");
         assertEquals(
                 invoice.path("id").asText(),
                 guardianInvoices.path("items").get(0).path("id").asText());
@@ -2052,9 +2033,7 @@ class ApiIntegrationTest {
                         + "'");
         assertEquals(
                 0,
-                call(get(base() + "/portal/invoices"), null, guardian, 200)
-                        .path("items")
-                        .size());
+                call(get(base() + "/portal/invoices"), null, guardian, 200).path("items").size());
         call(get(invoicePath), null, guardian, 404);
     }
 
@@ -2076,7 +2055,10 @@ class ApiIntegrationTest {
                 subject,
                 201);
 
-        String slug = db.one("select slug from app.organizations where id=?", tenant).get("slug").toString();
+        String slug =
+                db.one("select slug from app.organizations where id=?", tenant)
+                        .get("slug")
+                        .toString();
         for (String email : List.of("owner@example.invalid", "synthetic@example.invalid")) {
             var result =
                     mvc.perform(
@@ -2128,7 +2110,8 @@ class ApiIntegrationTest {
             st.setBytes(2, crypto.lookup(tenant, "synthetic@example.invalid"));
             try (var rs = st.executeQuery()) {
                 assertTrue(rs.next());
-                assertNull(rs.getObject(1), "guardian opt-out preserves patient email subscription");
+                assertNull(
+                        rs.getObject(1), "guardian opt-out preserves patient email subscription");
             }
         }
     }

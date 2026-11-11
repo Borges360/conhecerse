@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
       code_challenge_method: "S256",
       state,
       nonce,
-      acr_values: "2",
       ...(request.nextUrl.searchParams.get("reauth") === "true"
         ? { max_age: "0", prompt: "login" }
         : {}),

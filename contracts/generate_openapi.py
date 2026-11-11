@@ -140,7 +140,7 @@ add('get','/v1/orgs/{orgId}/patients/{patientId}/clinical-notes','Clinical','Lis
 add('post','/v1/orgs/{orgId}/patients/{patientId}/clinical-notes','Clinical','Criar rascunho clínico','CLINICIAN_ASSIGNED','ClinicalNote','ClinicalNoteCreate',idem=True)
 add('get','/v1/orgs/{orgId}/clinical-notes/{noteId}','Clinical','Ler evolução','CLINICIAN_ASSIGNED','ClinicalNote')
 add('patch','/v1/orgs/{orgId}/clinical-notes/{noteId}','Clinical','Salvar rascunho','NOTE_AUTHOR','ClinicalNote','ClinicalNotePatch',etag=True)
-add('post','/v1/orgs/{orgId}/clinical-notes/{noteId}/sign','Clinical','Assinar evolução','NOTE_AUTHOR_MFA','ClinicalNote',idem=True,etag=True)
+add('post','/v1/orgs/{orgId}/clinical-notes/{noteId}/sign','Clinical','Assinar evolução','NOTE_AUTHOR','ClinicalNote',idem=True,etag=True)
 add('post','/v1/orgs/{orgId}/clinical-notes/{noteId}/addenda','Clinical','Incluir adendo imutável','CLINICIAN_ASSIGNED','ClinicalNote','ClinicalNoteCreate',idem=True)
 # assets /docs
 add('post','/v1/orgs/{orgId}/files/uploads','Files','Criar upload temporário','FILE_WRITE_SCOPED','FileUpload','FileInit',idem=True)
