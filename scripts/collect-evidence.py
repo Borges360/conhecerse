@@ -54,7 +54,7 @@ for name in classes:
 result['qualityReportHashes'] = {'jacoco': digest(coverage_path), 'pit': digest(mutation_path)}
 result['journeys'] = {}
 for name, allowed in {
-    'oidc': ('keycloak', 'authorizationCodePkce', 'mfaTotp', 'opaqueHttpOnlyCookie', 'organizationCreated', 'finishedAt'),
+    'oidc': ('keycloak', 'authorizationCodePkce', 'opaqueHttpOnlyCookie', 'organizationCreated', 'finishedAt'),
     'vertical': ('oidc', 'database', 'bffCsrfDenied', 'professionalReviewed', 'patientCreated', 'appointmentScheduled', 'clinicalNoteSigned', 'manualInvoicePaid', 'publicContentReviewedPublished', 'finishedAt'),
 }.items():
     data = json.loads((LOCAL / f'{name}-evidence.json').read_text(encoding='utf-8'))

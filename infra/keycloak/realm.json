@@ -1,7 +1,8 @@
 {
   "realm": "conhecerse",
   "enabled": true,
-  "displayName": "Conhecer-se · espaço privado",
+  "displayName": "CONHECER-SE",
+  "loginTheme": "conhecerse",
   "registrationAllowed": true,
   "verifyEmail": true,
   "resetPasswordAllowed": true,
@@ -20,9 +21,6 @@
     "pt-BR"
   ],
   "defaultLocale": "pt-BR",
-  "otpPolicyType": "totp",
-  "otpPolicyAlgorithm": "HmacSHA256",
-  "otpPolicyDigits": 6,
   "requiredActions": [
     {
       "alias": "VERIFY_EMAIL",
@@ -31,14 +29,6 @@
       "enabled": true,
       "defaultAction": true,
       "priority": 50
-    },
-    {
-      "alias": "CONFIGURE_TOTP",
-      "name": "Configure OTP",
-      "providerId": "CONFIGURE_TOTP",
-      "enabled": true,
-      "defaultAction": true,
-      "priority": 10
     }
   ],
   "authenticationFlows": [
@@ -73,15 +63,7 @@
           "authenticator": "auth-username-password-form",
           "requirement": "REQUIRED",
           "priority": 10,
-          "userSetupAllowed": false,
-          "authenticatorConfig": "password-reference"
-        },
-        {
-          "authenticator": "auth-otp-form",
-          "requirement": "REQUIRED",
-          "priority": 20,
-          "userSetupAllowed": false,
-          "authenticatorConfig": "otp-reference"
+          "userSetupAllowed": false
         }
       ]
     }
@@ -117,15 +99,6 @@
             "access.token.claim": "true",
             "id.token.claim": "false"
           }
-        },
-        {
-          "name": "completed-authentication-methods",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-amr-mapper",
-          "config": {
-            "access.token.claim": "true",
-            "id.token.claim": "true"
-          }
         }
       ],
       "defaultClientScopes": [
@@ -135,27 +108,7 @@
       ]
     }
   ],
-  "otpPolicyPeriod": 30,
-  "otpPolicyLookAheadWindow": 1,
-  "otpPolicyInitialCounter": 0,
-  "otpPolicyCodeReusable": false,
   "revokeRefreshToken": true,
   "refreshTokenMaxReuse": 0,
-  "passwordPolicy": "length(12)",
-  "authenticatorConfig": [
-    {
-      "alias": "password-reference",
-      "config": {
-        "default.reference.value": "pwd",
-        "default.reference.maxAge": "28800"
-      }
-    },
-    {
-      "alias": "otp-reference",
-      "config": {
-        "default.reference.value": "otp",
-        "default.reference.maxAge": "28800"
-      }
-    }
-  ]
+  "passwordPolicy": "length(12)"
 }

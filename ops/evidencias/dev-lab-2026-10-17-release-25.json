@@ -1,0 +1,145 @@
+{
+  "recordedAt": "2026-10-17T08:02:41.507Z",
+  "environment": "dev lab",
+  "sourceCommit": "8177286e2be129ea89089682329ae900dbceb9ab",
+  "releaseTag": "25-8177286",
+  "releaseApproved": false,
+  "jenkins": {
+    "job": "conhecerse-dev",
+    "build": 25,
+    "url": "http://jenkins.lab/job/conhecerse-dev/25/",
+    "result": "SUCCESS",
+    "stages": {
+      "checkoutContractsAndQuality": "SUCCESS",
+      "rootlessBuildKit": "SUCCESS",
+      "scaSbomAndFinalImageScans": "SUCCESS",
+      "capacity": "SUCCESS",
+      "flyway": "SUCCESS",
+      "deployDev": "SUCCESS",
+      "zapPassiveBaseline": "SUCCESS"
+    },
+    "secretScan": {
+      "offlineMavenScan": true,
+      "mavenCentral429": false,
+      "allFinalImagesScanned": true,
+      "highOrCriticalFindings": 0
+    },
+    "sbomArtifacts": [
+      "sbom-api.cdx.json",
+      "sbom-av.cdx.json",
+      "sbom-iam.cdx.json",
+      "sbom-java.cdx.json",
+      "sbom-web.cdx.json"
+    ]
+  },
+  "gitOps": {
+    "repository": "homelab/infra",
+    "path": "infra/k3s/dev/conhecerse.yaml",
+    "commit": "2048cf13fde848c3758110d0c1240e2d926238e8",
+    "argoSync": "Synced",
+    "argoAggregateHealth": "Degraded due to unrelated resources",
+    "conhecerseWorkloadsHealthy": true
+  },
+  "runtime": {
+    "host": "conhecerse.lab",
+    "loginPath": "/auth",
+    "readyHttp": 200,
+    "deployments": {
+      "web": "1/1",
+      "api": "1/1",
+      "worker": "1/1",
+      "iam": "1/1",
+      "antivirus": "1/1"
+    },
+    "imageTags": {
+      "web": "25-8177286",
+      "api": "25-8177286",
+      "worker": "25-8177286",
+      "iam": "25-8177286",
+      "antivirus": "25-8177286"
+    }
+  },
+  "zapPassiveBaseline": {
+    "result": "SUCCESS",
+    "pass": 57,
+    "warning": 10,
+    "fail": 0,
+    "warningsForReview": [
+      "Non-Storable Content",
+      "Content Security Policy style-src unsafe-inline",
+      "Modern Web App",
+      "Authentication Request Identified",
+      "Session Management Response Identified"
+    ]
+  },
+  "roleApiJourneys": {
+    "recordedAt": "2026-10-17T06:49:47.977Z",
+    "syntheticProfiles": [
+      "admin",
+      "professional",
+      "secretary",
+      "finance",
+      "patient",
+      "guardian"
+    ],
+    "checks": {
+      "admin": {"successfulEndpoints": 7, "expected404": 1, "unexpectedServerErrors": 0},
+      "professional": {"successfulEndpoints": 5, "expected403": 2, "expected404": 1, "unexpectedServerErrors": 0},
+      "secretary": {"successfulEndpoints": 5, "expected403": 2, "expected404": 1, "unexpectedServerErrors": 0},
+      "finance": {"successfulEndpoints": 5, "expected403": 2, "expected404": 1, "unexpectedServerErrors": 0},
+      "patient": {"successfulEndpoints": 4, "expected403": 4, "unexpectedServerErrors": 0},
+      "guardian": {"successfulEndpoints": 4, "expected403": 4, "unexpectedServerErrors": 0}
+    },
+    "releaseApproved": false
+  },
+  "roleRouteCrawl": {
+    "recordedAt": "2026-10-17T07:56:22.549Z",
+    "readOnlyNavigation": true,
+    "syntheticOnly": true,
+    "visitedRoutes": 43,
+    "renderedRoutes": 43,
+    "uiAlerts": 0,
+    "profiles": {
+      "admin": {"visited": 10, "rendered": 10},
+      "professional": {"visited": 11, "rendered": 11},
+      "secretary": {"visited": 10, "rendered": 10},
+      "finance": {"visited": 10, "rendered": 10},
+      "patient": {"visited": 1, "rendered": 1},
+      "guardian": {"visited": 1, "rendered": 1}
+    }
+  },
+  "guardianScheduleReadback": {
+    "recordedAt": "2026-10-17T07:56:13Z",
+    "appointmentScope": "SCHEDULE",
+    "appointmentsHttp": 200,
+    "invoicesHttp": 200,
+    "passed": true
+  },
+  "filesEndToEnd": {
+    "recordedAt": "2026-10-17T08:02:41.507Z",
+    "providerPath": "application -> MinIO -> OpenBao Transit -> ClamAV",
+    "uploadAndValidation": true,
+    "encryptedStorageAndApplicationDecrypt": true,
+    "downloadChecksum": true,
+    "anonymousDownloadDenied": true,
+    "singleUseTicketEnforced": true,
+    "ticketExpiry60SecondsEnforced": true,
+    "crossOrganizationAccessDenied": true,
+    "eicarRejected": true,
+    "syntheticOnly": true
+  },
+  "notValidated": [
+    "Live MinIO and OpenBao outage and recovery through the application",
+    "OpenBao Kubernetes auto-auth, automatic token renewal and revocation, Transit rotation, and restore with decryptability",
+    "Asaas patient and SaaS subscription sandbox lifecycle, including callbacks, reconciliation, refunds, and chargebacks",
+    "Resend, WhatsApp Business, Keycloak SMTP, and LiveKit production-provider lifecycle",
+    "Clinical, legal, fiscal, commercial, and document-template approvals",
+    "Real ICP certificates, operational certificate-chain and CRL checks, PDF/A, and legal validity",
+    "Independent tenant-isolation review, ASVS, active DAST, and penetration test",
+    "DLP for traces, metrics, and final images; production image signatures and admission verification",
+    "Screen-reader, video-room, checkout, and participant accessibility studies",
+    "100 RPS load, 24-hour soak, latency targets, webhook and notification SLOs, and video targets",
+    "Isolated restore of database, objects, and keys with consistency and decryptability, measured RPO/RTO, rollback, and incident exercises",
+    "Production infrastructure, domain, TLS, Secure cookies, renewable secrets, monitoring, backups, and operational acceptance"
+  ]
+}

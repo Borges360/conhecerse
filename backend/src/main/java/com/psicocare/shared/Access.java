@@ -80,9 +80,16 @@ public class Access {
                 && db.exists(
                         "select 1 from app.invoice_payers ip join app.patients p on"
                                 + " p.tenant_id=ip.tenant_id and p.id=ip.patient_id where"
-                                + " ip.tenant_id=? and ip.id=? and p.portal_user_id=?",
+                                + " ip.tenant_id=? and ip.id=? and (p.portal_user_id=? or exists"
+                                + " (select 1 from app.guardian_patient_access g where"
+                                + " g.tenant_id=p.tenant_id and g.patient_id=p.id and"
+                                + " g.guardian_user_id=? and g.legal_verified_at is not null and"
+                                + " not g.review_required and g.valid_from<=now() and"
+                                + " (g.valid_until is null or g.valid_until>now()) and"
+                                + " 'BILLING'=any(g.access_scope)))",
                         a.tenant(),
                         invoice.get("payer_id"),
+                        a.user(),
                         a.user())) return;
         throw Problem.notFound();
     }

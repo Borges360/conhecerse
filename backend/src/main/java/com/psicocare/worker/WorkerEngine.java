@@ -146,8 +146,7 @@ public class WorkerEngine {
     }
 
     private Actor actor(Tenant t) {
-        return new Actor(
-                t.id(), t.actor(), Set.of("SECRETARY", "BILLING"), null, UUID.randomUUID());
+        return new Actor(t.id(), t.actor(), Set.of("SECRETARY", "BILLING"), UUID.randomUUID());
     }
 
     private void schedule(Tenant t) {

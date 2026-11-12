@@ -41,7 +41,6 @@ public class DeliveryModule implements ModuleHandler {
                             .map(r -> dto(r, "id", "job_type", "status", "attempts", "run_after"))
                             .toList());
         if (c.vars().containsKey("jobId")) {
-            a.recentMfa();
             var id = c.id("jobId");
             Problem.require(
                     text(c.body(), "decision").equals("APPROVE"), 422, "RETRY_APPROVAL_REQUIRED");
@@ -90,7 +89,6 @@ public class DeliveryModule implements ModuleHandler {
                                                     "failure_code",
                                                     "attempts"))
                             .toList());
-        a.recentMfa();
         var id = c.id("notificationId");
         var n =
                 db.one(

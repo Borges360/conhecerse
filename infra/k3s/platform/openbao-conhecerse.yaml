@@ -1,0 +1,22 @@
+# Prepared only; publish through gitops-publish.ps1 together with infra/k3s/dev/conhecerse.yaml.
+# SEC-012: only the Conhecer-se API and worker pods in dev reach OpenBao, and only over native TLS.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: openbao-conhecerse
+  namespace: platform
+  labels:
+    part-of: conhecerse
+spec:
+  podSelector:
+    matchLabels: {app.kubernetes.io/name: openbao}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: dev}
+          podSelector:
+            matchExpressions:
+              - {key: app, operator: In, values: [conhecerse-api, conhecerse-worker]}
+      ports:
+        - {protocol: TCP, port: 8202}

@@ -1,0 +1,118 @@
+{
+  "recordedAt": "2026-10-17T00:07:57.2365470-03:00",
+  "localDate": "2026-10-17",
+  "timezone": "America/Sao_Paulo",
+  "target": "dev lab",
+  "releaseApproved": false,
+  "source": {
+    "commit": "e25fdbeca971e37c198bb7edbd0b595b8c9b14df",
+    "jenkinsBuild": 17,
+    "jenkinsResult": "SUCCESS",
+    "imageTag": "17-e25fdbe",
+    "images": {
+      "web": "registry.platform.svc.cluster.local:5000/conhecerse:17-e25fdbe",
+      "api": "registry.platform.svc.cluster.local:5000/conhecerse-api:17-e25fdbe",
+      "worker": "registry.platform.svc.cluster.local:5000/conhecerse-api:17-e25fdbe",
+      "iam": "registry.platform.svc.cluster.local:5000/conhecerse-iam:17-e25fdbe",
+      "antivirus": "registry.platform.svc.cluster.local:5000/conhecerse-av:17-e25fdbe"
+    },
+    "stages": {
+      "checkoutQuality": "SUCCESS",
+      "buildAndPublishImages": "SUCCESS",
+      "finalImageScaAndSbom": "SUCCESS",
+      "capacityGate": "SUCCESS; no 60-minute load or 24-hour soak claim",
+      "flyway": "SUCCESS",
+      "devRollout": "SUCCESS",
+      "dastPassiveBaseline": "SUCCESS; warnings recorded and require review before production"
+    }
+  },
+  "gitops": {
+    "repository": "homelab/infra",
+    "path": "infra/k3s/dev/conhecerse.yaml",
+    "commit": "b9880f3caf5ff3f76332592a4838d15f3859ae75",
+    "argoRevision": "b9880f3caf5ff3f76332592a4838d15f3859ae75",
+    "sync": "Synced",
+    "health": "Degraded; only unrelated publishsys and sistemalux deployments are unready"
+  },
+  "cluster": {
+    "deploymentsReady": "5/5 at 1/1",
+    "apiReadyHttp": 200,
+    "oidcDiscoveryHttp": 200,
+    "oidcIssuer": "http://conhecerse.lab/auth/realms/conhecerse",
+    "loginHost": "conhecerse.lab",
+    "loginPath": "/auth",
+    "separateAuthIngressPresent": false,
+    "roles": {
+      "web": "1/1",
+      "api": "1/1",
+      "worker": "1/1",
+      "iam": "1/1",
+      "antivirus": "1/1"
+    }
+  },
+  "qaAccounts": {
+    "count": 6,
+    "syntheticOnly": true,
+    "keycloakTotpLogin": "6/6 on current same-origin route",
+    "opaqueHttpOnlySessions": "6/6",
+    "organizationCounts": {
+      "admin": 7,
+      "professional": 0,
+      "secretary": 0,
+      "finance": 0,
+      "patient": 0,
+      "guardian": 0
+    },
+    "roleWorkflows": "not validated; non-admin accounts lack organization memberships and invite delivery needs Resend/email configuration",
+    "windowsClock": {
+      "synchronized": false,
+      "localClockAheadOfPublicTimeSeconds": 60,
+      "evidence": "w32tm reports free-running clock; time.windows.com, time.google.com, time.cloudflare.com, pool.ntp.org and HTTPS Date headers show approximately 60s offset",
+      "qaTotpCorrectionSeconds": -60,
+      "clusterClockChanged": false
+    }
+  },
+  "storage": {
+    "providerPath": "MinIO + OpenBao Transit + application ClamAV",
+    "uploadValidated": true,
+    "encryptedStorageAndDecrypt": true,
+    "downloadChecksum": true,
+    "anonymousDownloadDenied": true,
+    "crossOrganizationDownloadDenied": true,
+    "singleUseEnforced": true,
+    "ttl60SecondsEnforced": true,
+    "eicarRejected": true,
+    "rejectedFileDownloadDenied": true,
+    "avOutageRecovery": {
+      "injected": true,
+      "failureHttp": 503,
+      "failureCode": "MALWARE_SCANNER_UNAVAILABLE",
+      "quarantinedUploadRetryable": true,
+      "recoveryReady": true,
+      "postRecoveryChecksum": true,
+      "testHarness": "qa/automation/storage-av-outage-recovery.cjs",
+      "testResult": "passed on deployed image tag 17-e25fdbe"
+    },
+    "minioOutageRecovery": "not tested",
+    "openbaoOutageRecovery": "not tested",
+    "testObjectsSynthetic": true
+  },
+  "openbao": {
+    "workloadAuth": "static Kubernetes Secret token; workload Kubernetes auto-auth not configured in live Deployment",
+    "selfRenewal": "passed in prior evidence; see dev-lab-2026-10-17.json",
+    "disposableTokenCreation": "403; not available to workload token",
+    "transitRotation": "403; operator permission required",
+    "activeTokenRevocation": "not performed; active application token",
+    "backupRestoreAndDecryptability": "not tested"
+  },
+  "remaining": [
+    "Role-specific organization journeys after invitation acceptance",
+    "External provider cycles and callbacks",
+    "Human clinical/legal/fiscal/commercial approvals",
+    "OpenBao Kubernetes workload auth, authorized key rotation and restore exercise",
+    "DAST warning review, ASVS, independent tenant review, pentest, image signing and admission verification",
+    "Screen reader and participant accessibility evaluation",
+    "100 req/s for 60 min, 24-hour soak, backups, restore, RPO and RTO",
+    "Production infrastructure, TLS and operational acceptance"
+  ]
+}

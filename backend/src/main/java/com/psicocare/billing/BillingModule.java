@@ -331,8 +331,17 @@ public class BillingModule implements ModuleHandler {
             boolean portal = path.contains("/portal/");
             boolean staff = a.has("OWNER", "ADMIN", "BILLING") && !portal;
             var filter = invoiceFilter(c);
+            String payerAccess = "";
             if (!staff) {
                 filter.args().add(a.user());
+                filter.args().add(a.user());
+                payerAccess =
+                        " and (p.portal_user_id=? or exists (select 1 from"
+                                + " app.guardian_patient_access g where g.tenant_id=p.tenant_id"
+                                + " and g.patient_id=p.id and g.guardian_user_id=? and"
+                                + " g.legal_verified_at is not null and not g.review_required"
+                                + " and g.valid_from<=now() and (g.valid_until is null or"
+                                + " g.valid_until>now()) and 'BILLING'=any(g.access_scope)))";
             }
             filter.args().add(c.limit() + 1);
             filter.args().add(c.offset());
@@ -344,7 +353,7 @@ public class BillingModule implements ModuleHandler {
                                         + " app.patients p on p.tenant_id=ip.tenant_id and"
                                         + " p.id=ip.patient_id where "
                                             + filter.sql()
-                                            + (staff ? "" : " and p.portal_user_id=?")
+                                            + payerAccess
                                             + " order by i.created_at desc,i.id limit ? offset ?",
                                     filter.args().toArray())
                             .stream()

@@ -1,7 +1,7 @@
 # Operação, implantação e resposta a falhas
 
 ## Perfis e controle
-- Plataforma com ambientes separados `dev/staging/prod`; acesso de infraestrutura concedido por OIDC + MFA + elevação temporária; deployments automatizados GitOps e revisão de duas pessoas para produção.
+- Plataforma com ambientes separados `dev/staging/prod`; acesso de infraestrutura concedido por OIDC + elevação temporária; deployments automatizados GitOps e revisão de duas pessoas para produção.
 - Segredos via OpenBao KV v2 + autenticação por workload; KMS externo ou transit engine com políticas não exportáveis. O OpenBao armazena segredos de fornecedores sem expor chaves a IAs e não substitui arquitetura de autorização dos dados clínicos.
 - Nomes de serviços `psico-web`, `psico-api`, `psico-worker`, `psico-keycloak`, `psico-postgres`, `psico-video` (dois nós rede pública com host networking e Redis HA de coordenação), `psico-objectstore`. Namespaces separados por ambiente. Domínios `app`, `api`, `meet`, `auth`, `assets` com DNS e TLS válidos.
 
