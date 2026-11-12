@@ -4,14 +4,26 @@ from pathlib import Path
 import yaml
 
 ROOT=Path(__file__).resolve().parents[1]
-parser=argparse.ArgumentParser();parser.add_argument('--lab',type=Path,required=True);args=parser.parse_args();lab=args.lab.resolve()
+parser=argparse.ArgumentParser();parser.add_argument('--lab',type=Path,required=True)
+parser.add_argument('--files-only',action='store_true',help='Sincroniza só manifesto, NetworkPolicy, Dockerfile e esteira; não lê nem gera segredos.')
+args=parser.parse_args();lab=args.lab.resolve()
 if not (lab/'docs/QUICKSTART-APP.md').is_file():raise SystemExit('Repositório do laboratório não encontrado.')
 def update(relative,fn):
     path=lab/relative;old=path.read_text(encoding='utf-8');new=fn(old)
     if new!=old:path.write_text(new,encoding='utf-8',newline='\n')
 def append_once(old,marker,content):return old if marker in old else old.rstrip()+'\n\n'+content.strip()+'\n'
-for src,dst in [('infra/k3s/dev/conhecerse.yaml','infra/k3s/dev/conhecerse.yaml'),('infra/images/conhecerse/Dockerfile','infra/images/conhecerse/Dockerfile'),('infra/images/conhecerse/Dockerfile.dockerignore','infra/images/conhecerse/Dockerfile.dockerignore'),('pipelines/deploy-conhecerse-dev.Jenkinsfile','pipelines/deploy-conhecerse-dev.Jenkinsfile')]:
-    target=lab/dst;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/src,target)
+IMAGE=re.compile(r'^(\s*image: registry\.platform\.svc\.cluster\.local:5000/(conhecerse(?:-api|-iam|-av)?))[:@]\S+$',re.M)
+def keep_deployed_images(source,target):
+    # gitops-publish.ps1 runs kubectl apply: keep the image refs Jenkins already rolled out instead of the placeholder.
+    if not target.exists():return source
+    deployed={m[2]:m[0].strip() for m in IMAGE.finditer(target.read_text(encoding='utf-8'))}
+    return IMAGE.sub(lambda m:m[1].split('image:')[0]+deployed[m[2]] if m[2] in deployed else m[0],source)
+for src,dst in [('infra/k3s/dev/conhecerse.yaml','infra/k3s/dev/conhecerse.yaml'),('infra/k3s/platform/openbao-conhecerse.yaml','infra/k3s/platform/openbao-conhecerse.yaml'),('infra/images/conhecerse/Dockerfile','infra/images/conhecerse/Dockerfile'),('infra/images/conhecerse/Dockerfile.dockerignore','infra/images/conhecerse/Dockerfile.dockerignore'),('pipelines/deploy-conhecerse-dev.Jenkinsfile','pipelines/deploy-conhecerse-dev.Jenkinsfile')]:
+    target=lab/dst;target.parent.mkdir(parents=True,exist_ok=True)
+    if dst=='infra/k3s/dev/conhecerse.yaml':
+        target.write_text(keep_deployed_images((ROOT/src).read_text(encoding='utf-8'),target),encoding='utf-8',newline='\n')
+    else:shutil.copyfile(ROOT/src,target)
+if args.files_only:raise SystemExit(print('Arquivos do Conhecer-se sincronizados. Nenhum segredo, catálogo, RBAC, apply, push ou build foi alterado.'))
 update('infra/k3s/platform/jenkins-rbac.yaml',lambda text: re.sub(r'(resourceNames: \[[^\n]*)(\])',lambda m:m[0] if '"conhecerse"' in m[0] else m[1]+', "conhecerse", "conhecerse-api", "conhecerse-worker", "conhecerse-iam", "conhecerse-av"'+m[2],text))
 
 def catalog(text):
@@ -136,7 +148,7 @@ update('playbooks/credenciais.md',lambda text:append_once(text,'apps/conhecerse.
 | Fonte | Materialização |
 | --- | --- |
 | `db.yml`, `postgres_conhecerse_*` | Papéis separados runtime, migrator, BFF e IAM; bancos `conhecerse` e `conhecerse_iam` no db01 |
-| `apps/conhecerse.env` | `dev/conhecerse-app`, `dev/conhecerse-web`, `dev/conhecerse-iam`, `platform/conhecerse-dev-db`; o token do OpenBao vem do role Kubernetes `conhecerse-dev`, sem Secret estático |
+| `apps/conhecerse.env` | `dev/conhecerse-app`, `dev/conhecerse-web`, `dev/conhecerse-iam`, `platform/conhecerse-dev-db`; o token do OpenBao vem do role JWT `conhecerse-dev` (mount `jenkins-jwt`, service account `dev/conhecerse-workload`), sem Secret estático |
 
 Segredos de fornecedores ficam no OpenBao. Bucket privado e credencial limitada do MinIO devem ser provisionados antes do primeiro uso de arquivos. Os campos ausentes não são substituídos por valores de demonstração. Não publicar estes valores em logs.'''))
 for relative in ['infra/dns/adguard/config/AdGuardHome.yaml','infra/dns/adguard/runtime/conf/AdGuardHome.yaml']:

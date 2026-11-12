@@ -23,6 +23,8 @@ O provisionamento de PostgreSQL, bucket privado, permissões MinIO, chaves Trans
 
 O pedido explícito do usuário autorizou o primeiro deploy de laboratório; esse deploy foi executado e está comprovado pela release24. Para alterações futuras, usar o job e a publicação GitOps oficiais após autorização aplicável. Não aplicar `infra/k3s/dev` diretamente com `kubectl`.
 
+O manifesto deste repositório incorpora os ajustes feitos no laboratório depois da release24: `hostAliases` para `conhecerse.lab`, TLS do Ingress com cabeçalhos de segurança, Secret `conhecerse-s3`, Job `minio-init-conhecerse` e requests de CPU de 50m. A esteira incorpora a service account `conhecerse-dev-deployer`, a recusa de `SKIP_TEST` fora de `DRY_RUN` e os caminhos do relatório ZAP. Assim, `prepare_lab.py --files-only` não desfaz o estado do laboratório.
+
 ```powershell
 .\infra\bin\gitops-publish.ps1 -Message "Atualizar Conhecer-se no namespace dev" -Paths "infra/k3s/dev/conhecerse.yaml"
 # Em seguida, executar conhecerse-dev pelo fluxo Jenkins autorizado e conferir a revisão Argo.
@@ -36,23 +38,23 @@ Na medição de 17/10, os cinco pods agendados no nó `k3s01` estavam 60 segundo
 
 ### Identidade de workload no OpenBao (SEC-012)
 
-API e worker leem o token do OpenBao no arquivo escrito pelo `bao-agent`. Esse sidecar nativo autentica com o token projetado da service account (`audience=openbao`, validade de 1 h) e renova o token restrito. O manifesto do laboratório usa a service account `conhecerse-workload` e o role `conhecerse-dev`; o chart usa `openbao.authRole`. Como a aplicação relê o arquivo a cada operação, a renovação não exige reinício. Sem token, o sidecar não conclui o startup e o pod não fica pronto, ou seja, a falha é fechada.
+API e worker leem o token do OpenBao no arquivo escrito pelo `bao-agent`. Esse sidecar nativo autentica com o token projetado da service account (`audience=openbao`, validade de 1 h) e renova o token restrito. Como a aplicação relê o arquivo a cada operação, a renovação não exige reinício. Sem token, o sidecar não conclui o startup e o pod não fica pronto, ou seja, a falha é fechada.
 
-Antes de publicar o manifesto, operação e segurança configuram o OpenBao com autorização própria, sem uso rotineiro de token raiz:
+No laboratório, o OpenBao da plataforma valida tokens de service account no mount JWT `jenkins-jwt`, o mesmo padrão já usado pelo Jenkins e pelo mcphub. Por isso o agente usa `method "jwt"` nesse mount, sem TokenReview nem credencial de revisor. O role `conhecerse-dev` aceita só `system:serviceaccount:dev:conhecerse-workload` com audiência `openbao`, de modo que o token projetado não serve para a API do Kubernetes. O agente e a API falam com o OpenBao por TLS nativo na porta 8202 e confiam somente no Secret `openbao-root-ca` montado no pod (`BAO_CACERT` e `APP_EXTRA_CA_FILE`). A NetworkPolicy [`openbao-conhecerse`](../infra/k3s/platform/openbao-conhecerse.yaml) libera apenas os pods da API e do worker em `dev`, e apenas nessa porta. O chart aceita `openbao.authMethod` `kubernetes` ou `jwt`, `openbao.authMount` e `openbao.caSecret` para o candidato.
 
-```sh
-bao auth enable kubernetes   # somente se o método ainda não existir
-bao write auth/kubernetes/config kubernetes_host=https://kubernetes.default.svc:443
-bao write auth/kubernetes/role/conhecerse-dev \
-  bound_service_account_names=conhecerse-workload \
-  bound_service_account_namespaces=dev \
-  audience=openbao \
-  token_policies=conhecerse-dev \
-  token_no_default_policy=true \
-  token_ttl=1h token_max_ttl=24h
-```
+O role e a política estão versionados em [`infra/openbao/conhecerse-dev.json`](../infra/openbao/conhecerse-dev.json). Ordem de ativação no laboratório, cada passo com autorização própria e sem token raiz:
 
-A service account do OpenBao precisa de `system:auth-delegator` para validar os tokens por TokenReview. Depois do rollout com o agente, revogar o token estático e remover o Secret `dev/conhecerse-bao-token`. Para fechar SEC-012 no candidato, registrar:
+1. Com um token de operador autorizado num arquivo local ignorado, conferir e aplicar a definição. O script aceita só HTTPS, nunca cria o mount nem imprime o token, e termina com a mesma verificação de `--check`:
+   ```sh
+   BAO_ADDR=https://openbao.lab BAO_CACERT=<ca-da-plataforma> BAO_TOKEN_FILE=<arquivo-do-token> \
+     python scripts/configure_openbao_workload.py --check   # mostra as divergências
+   python scripts/configure_openbao_workload.py --apply     # política + role, depois verificação
+   ```
+2. Sincronizar os arquivos no repositório do laboratório com `python scripts/prepare_lab.py --lab ../jenkies --files-only`. Esse modo não lê segredos e preserva as imagens já implantadas, porque `gitops-publish.ps1` executa `kubectl apply`.
+3. Publicar `infra/k3s/platform/openbao-conhecerse.yaml` e `infra/k3s/dev/conhecerse.yaml` com `gitops-publish.ps1`, publicar a esteira com `jenkins-publish.ps1` e então executar `conhecerse-dev`.
+4. Com os pods prontos, revogar o token estático e remover o Secret `dev/conhecerse-bao-token`.
+
+Se o passo 3 ocorrer antes do 1, o novo pod da API não obtém token e fica sem readiness, enquanto o pod anterior continua atendendo até o rollout falhar. No candidato com `authMethod=kubernetes`, a identidade usada pelo OpenBao para TokenReview precisa de `system:auth-delegator`. Para fechar SEC-012 no candidato, registrar:
 
 - o login `auth/kubernetes` no log do agente e em `bao token lookup`;
 - renovação durante mais de um TTL;
@@ -68,9 +70,9 @@ A esteira executa a cadeia de imagens em uma única referência OCI:
 2. Trivy analisa e gera o SBOM por digest.
 3. O cosign v2.6.5 assina cada digest com `--tlog-upload=false`, sem envio ao log público, e verifica a assinatura com `cosign.pub`.
 4. A migração e o rollout usam a mesma referência.
-5. `rollout-images.txt` compara a spec dos Deployments com o `imageID` dos pods em execução.
+5. `rollout-images.txt` registra, para cada Deployment, a imagem da spec por digest e o status com todas as réplicas atualizadas e disponíveis na geração observada. O deployer `conhecerse-dev-deployer` só lê e altera os próprios Deployments, sem acesso a pods. Como a spec fixa o digest e não restam réplicas antigas, todo pod em execução usa a referência assinada.
 
-O Jenkins precisa das credenciais `conhecerse-cosign-key`, um Secret file com a chave privada cifrada gerada por `cosign generate-key-pair`, e `conhecerse-cosign-password`, um Secret text. Se faltarem, o estágio de assinatura falha e o deploy não acontece. A chave privada nunca entra em Git, values ou logs; somente `cosign.pub` é arquivado. No laboratório, a verificação ocorre na esteira.
+O Jenkins precisa das credenciais `conhecerse-cosign-key`, um Secret file com a chave privada cifrada gerada por `cosign generate-key-pair`, e `conhecerse-cosign-password`, um Secret text. Se faltarem, o estágio de assinatura falha e o deploy não acontece. A chave privada nunca entra em Git, values ou logs; somente `cosign.pub` é arquivado. No laboratório, as credenciais do Jenkins vêm do OpenBao pelo fragmento JCasC `jenkins-openbao-casc.yaml`. A operação gera o par de chaves fora do repositório e grava a chave e a senha num caminho restrito do KV, por exemplo `secret/homelab/restricted/jenkins/conhecerse-cosign`. Depois declara ali um `vaultFileCredentialImpl` e um `vaultStringCredentialImpl` com esses IDs e confirma que a política `jenkins-controller` lê somente esse caminho adicional. No laboratório, a verificação ocorre na esteira.
 
 No ambiente candidato, a verificação ocorre na admissão:
 
@@ -86,7 +88,7 @@ O chart cria uma `ClusterImagePolicy` para `<registry>/conhecerse*` com essa cha
 
 O segredo de cada nó LiveKit é JSON com `config`, `turnCertificate`, `turnPrivateKey`. Configurar porta7880 atrás do ALB; `rtc.use_external_ip=true`, portas UDP50000–60000, TCP7881; TURN5349/TLS e3478/UDP com hostname/certificado de cada EIP; Redis `use_tls=true`; `room.auto_create=false`, nenhuma credencial/serviço Egress. Certificados TURN são montados como arquivos privados e devem ser renovados com rollout. AMI precisa de Docker, AWS CLI, Python3/PyYAML e SSM. O token de entrada dura120s; o worker encerra salas terminais/expiradas ou com vínculo profissional revogado. Homologar revogação, reconexão, E2EE e limites do LiveKit autogerenciado em navegadores reais antes de liberar o gate.
 
-`infra/helm/conhecerse`: requer tag de release, hosts, TLS Secret, Secrets de web/API/IAM e OpenBao configurado com autenticação Kubernetes para a service account. `releaseApproved=false` bloqueia produção. Staging e produção exigem `imageDigests.web/api/iam/av` válidos, obtidos após scan e assinatura das imagens, e `imageSignature.enforce=true` com a chave pública cosign; o chart usa essas referências OCI imutáveis e cria as políticas de [admissão](#assinatura-e-admissão-de-imagens-sec-013). API exige `sslmode=verify-full`, issuer/KMS/S3 HTTPS e runtime sem ownership/BYPASSRLS. BFF exige origem HTTPS e cookie Secure. Não usar token raiz do OpenBao; agent renova token restrito. Aplicar least privilege para S3/KMS e cofre, revisar ServiceMonitor/PrometheusRule no cluster, montar CA privada quando necessária.
+`infra/helm/conhecerse`: requer tag de release, hosts, TLS Secret, Secrets de web/API/IAM e OpenBao configurado com autenticação Kubernetes ou JWT para a service account (`openbao.authMethod`, `openbao.authMount`). `releaseApproved=false` bloqueia produção. Staging e produção exigem `imageDigests.web/api/iam/av` válidos, obtidos após scan e assinatura das imagens, e `imageSignature.enforce=true` com a chave pública cosign; o chart usa essas referências OCI imutáveis e cria as políticas de [admissão](#assinatura-e-admissão-de-imagens-sec-013). API exige `sslmode=verify-full`, issuer/KMS/S3 HTTPS e runtime sem ownership/BYPASSRLS. BFF exige origem HTTPS e cookie Secure. Não usar token raiz do OpenBao; agent renova token restrito. Aplicar least privilege para S3/KMS e cofre, revisar ServiceMonitor/PrometheusRule no cluster, montar CA privada quando necessária com `openbao.caSecret`, confiada pelo agente e pela API.
 
 ## Integrações e contingências
 

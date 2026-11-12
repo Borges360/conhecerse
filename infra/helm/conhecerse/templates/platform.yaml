@@ -11,10 +11,19 @@ data:
     exit_after_auth = false
     pid_file = "/tmp/bao-agent.pid"
     auto_auth {
+      {{- if eq .Values.openbao.authMethod "kubernetes" }}
       method "kubernetes" {
-        mount_path = "auth/kubernetes"
+        mount_path = "auth/{{ .Values.openbao.authMount }}"
         config = { role = "{{ .Values.openbao.authRole }}", token_path = "/var/run/secrets/workload/token" }
       }
+      {{- else if eq .Values.openbao.authMethod "jwt" }}
+      method "jwt" {
+        mount_path = "auth/{{ .Values.openbao.authMount }}"
+        config = { role = "{{ .Values.openbao.authRole }}", path = "/var/run/secrets/workload/token", remove_jwt_after_reading = false }
+      }
+      {{- else }}
+      {{- fail "openbao.authMethod deve ser kubernetes ou jwt." }}
+      {{- end }}
       sink "file" { config = { path = "/var/run/secrets/openbao/token", mode = 0600 } }
     }
 ---

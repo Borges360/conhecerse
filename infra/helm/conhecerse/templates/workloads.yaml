@@ -40,6 +40,9 @@ spec:
           args: [agent, -config=/bao/config/agent.hcl]
           env:
             - {name: BAO_ADDR, value: {{ $root.Values.openbao.url | quote }}}
+            {{- if $root.Values.openbao.caSecret }}
+            - {name: BAO_CACERT, value: /var/run/openbao-ca/ca.crt}
+            {{- end }}
             - {name: SKIP_SETCAP, value: "true"}
             - {name: SKIP_CHOWN, value: "true"}
           securityContext: {runAsNonRoot: true, runAsUser: 1001, allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
@@ -52,6 +55,9 @@ spec:
             - {name: bao-token, mountPath: /var/run/secrets/openbao}
             - {name: bao-config, mountPath: /bao/config, readOnly: true}
             - {name: workload-jwt, mountPath: /var/run/secrets/workload, readOnly: true}
+            {{- if $root.Values.openbao.caSecret }}
+            - {name: openbao-ca, mountPath: /var/run/openbao-ca, readOnly: true}
+            {{- end }}
       {{- end }}
       containers:
         - name: app
@@ -75,7 +81,11 @@ spec:
             {{- if or (eq $component "api") (eq $component "worker") }}
             - {name: WORKER_ENABLED, value: {{ ternary "true" "false" (eq $component "worker") | quote }}}
             - {name: BAO_TOKEN_FILE, value: /var/run/secrets/openbao/token}
+            - {name: BAO_URL, value: {{ $root.Values.openbao.url | quote }}}
             - {name: ENCRYPTION_PROVIDER, value: openbao}
+            {{- if $root.Values.openbao.caSecret }}
+            - {name: APP_EXTRA_CA_FILE, value: /var/run/openbao-ca/ca.crt}
+            {{- end }}
             {{- end }}
           resources: {{ index $root.Values.resources $component | toYaml | nindent 12 }}
           startupProbe:
@@ -96,10 +106,17 @@ spec:
             tcpSocket: {port: http}
             periodSeconds: 20
           {{- if or (eq $component "api") (eq $component "worker") }}
-          volumeMounts: [{name: bao-token, mountPath: /var/run/secrets/openbao, readOnly: true}]
+          volumeMounts:
+            - {name: bao-token, mountPath: /var/run/secrets/openbao, readOnly: true}
+            {{- if $root.Values.openbao.caSecret }}
+            - {name: openbao-ca, mountPath: /var/run/openbao-ca, readOnly: true}
+            {{- end }}
       volumes:
         - {name: bao-token, emptyDir: {medium: Memory, sizeLimit: 1Mi}}
         - {name: bao-config, configMap: {name: {{ $root.Release.Name }}-bao}}
+        {{- if $root.Values.openbao.caSecret }}
+        - {name: openbao-ca, secret: {secretName: {{ $root.Values.openbao.caSecret | quote }}, defaultMode: 0444}}
+        {{- end }}
         - name: workload-jwt
           projected:
             sources:

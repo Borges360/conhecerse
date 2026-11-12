@@ -90,7 +90,7 @@ def DEPLOY_POD = '''
 apiVersion: v1
 kind: Pod
 spec:
-  serviceAccountName: lab-deployer
+  serviceAccountName: conhecerse-dev-deployer
   containers:
     - name: kubectl
       image: alpine/k8s:1.33.4@sha256:b0523f0a244ddc4c8e055aa335c040d3d78b3ead5528f4544395f7f9f69c7b68
@@ -170,10 +170,19 @@ pipeline {
   options {timestamps(); ansiColor('xterm'); disableConcurrentBuilds(); buildDiscarder(logRotator(numToKeepStr:'20')); timeout(time:60,unit:'MINUTES')}
   parameters {
     string(name:'BRANCH',defaultValue:'main',description:'Branch do repositório Conhecer-se')
-    booleanParam(name:'SKIP_TEST',defaultValue:false,description:'Exceção explícita para pular testes. Não utilizar para liberação de produção.')
+    booleanParam(name:'SKIP_TEST',defaultValue:false,description:'Somente diagnóstico com DRY_RUN=true; publicação e deploy exigem testes aprovados.')
     booleanParam(name:'DRY_RUN',defaultValue:false,description:'Executa testes e builds sem push, migrações ou deploy')
   }
   stages {
+    stage('Validar política de testes') {
+      steps {
+        script {
+          if (params.SKIP_TEST && !params.DRY_RUN) {
+            error('SKIP_TEST exige DRY_RUN=true. Publicação e deploy exigem os testes obrigatórios.')
+          }
+        }
+      }
+    }
     stage('Checkout, contratos e qualidade') {
       steps {script {podTemplate(yaml:TEST_POD) {node(POD_LABEL) {dir('app') {
         checkout([$class:'GitSCM',branches:[[name:"*/${params.BRANCH}"]],userRemoteConfigs:[[url:REPO_URL,credentialsId:'github-ssh']],extensions:[[$class:'CloneOption',shallow:true,depth:1,noTags:true]]])
@@ -330,20 +339,21 @@ spec:
           kubectl -n dev scale deployment/$name --replicas=1
           kubectl -n dev rollout status deployment/$name --timeout=600s
         done
-        # SEC-013: record that the rolled-out spec and the running containers use the signed digests.
+        # SEC-013: the rolled-out spec pins the signed digest and every replica belongs to that revision.
+        # Deployment status is enough here: the deployer RBAC deliberately has no access to pods.
         : > rollout-images.txt
         for pair in "conhecerse=$web" "conhecerse-api=$api" "conhecerse-worker=$api" "conhecerse-iam=$iam" "conhecerse-av=$av"; do
           name="${pair%%=*}"
           expected="${pair#*=}"
-          spec="$(kubectl -n dev get deployment/$name -o jsonpath='{.spec.template.spec.containers[?(@.name=="app")].image}')"
-          [ "$spec" = "$expected" ] || { echo "Imagem divergente em $name: $spec"; exit 1; }
-          running="$(kubectl -n dev get pods -l app=$name --field-selector=status.phase=Running -o jsonpath='{range .items[*]}{.status.containerStatuses[?(@.name=="app")].imageID} {end}')"
-          [ -n "$running" ] || { echo "Nenhum pod em execução para $name"; exit 1; }
-          for id in $running; do
-            case "$id" in *"@${expected#*@}") ;; *) echo "Pod de $name executa $id"; exit 1 ;; esac
-          done
-          echo "$name $expected $running" >> rollout-images.txt
+          kubectl -n dev get deployment/$name -o json > deployment.json
+          jq -e --arg image "$expected" '([.spec.template.spec.containers[] | select(.name=="app") | .image] == [$image])
+            and .status.observedGeneration >= .metadata.generation
+            and .status.replicas == .spec.replicas
+            and .status.updatedReplicas == .spec.replicas
+            and .status.availableReplicas == .spec.replicas' deployment.json >/dev/null || { echo "Rollout de $name não confirma o digest assinado"; exit 1; }
+          jq -r --arg name "$name" '$name + " " + (.spec.template.spec.containers[] | select(.name=="app") | .image) + " generation=" + (.metadata.generation|tostring) + " updated=" + (.status.updatedReplicas|tostring) + " available=" + (.status.availableReplicas|tostring)' deployment.json >> rollout-images.txt
         done
+        rm -f deployment.json
         cat rollout-images.txt
         code="$(curl -sS -o /dev/null -w '%{http_code}' -H 'Host: conhecerse.lab' http://conhecerse.dev.svc.cluster.local:3000/api/ready)"
         [ "$code" = "200" ]
@@ -353,7 +363,7 @@ spec:
       when {expression {return !params.DRY_RUN}}
       steps {script {podTemplate(yaml:DAST_POD){node(POD_LABEL){container('zap'){sh '''
         set +e
-        zap-baseline.py -t http://conhecerse.lab -m 1 -T 5 -r /zap/wrk/zap-baseline.html -J /zap/wrk/zap-baseline.json
+        zap-baseline.py -t http://conhecerse.lab -m 1 -T 5 -r zap-baseline.html -J zap-baseline.json
         result=$?
         set -e
         cp /zap/wrk/zap-baseline.html zap-baseline.html
