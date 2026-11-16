@@ -65,7 +65,6 @@ public class IdentityModule implements ModuleHandler {
         }
         if (path.equals("/v1/orgs")) {
             Problem.require(c.verifiedEmail() != null, 403, "VERIFIED_EMAIL_REQUIRED");
-            a.recentMfa();
             db.jdbc.queryForObject(
                     "select pg_advisory_xact_lock(hashtextextended(?,4))",
                     Object.class,
@@ -139,7 +138,7 @@ public class IdentityModule implements ModuleHandler {
                     hash(canonical(b)),
                     id);
             events.audit(
-                    new Actor(id, a.user(), Set.of("OWNER"), a.mfaAt(), a.requestId()),
+                    new Actor(id, a.user(), Set.of("OWNER"), a.requestId()),
                     "OrganizationCreated",
                     "organization",
                     id);
@@ -227,7 +226,6 @@ public class IdentityModule implements ModuleHandler {
         }
         if (c.vars().containsKey("memberId")) {
             a.require("OWNER", "ADMIN");
-            a.recentMfa();
             UUID id = c.id("memberId");
             db.jdbc.queryForObject(
                     "select pg_advisory_xact_lock(hashtextextended(?,7))",
@@ -608,7 +606,6 @@ public class IdentityModule implements ModuleHandler {
                     token.get("patient_id"));
         }
         if (token.get("membership_id") != null) {
-            c.actor().recentMfa();
             db.exec(
                     "update app.organization_memberships set"
                             + " user_id=?,status='ACTIVE',joined_at=now(),email_cipher=? where"

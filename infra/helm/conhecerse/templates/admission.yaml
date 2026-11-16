@@ -1,0 +1,46 @@
+{{- /*
+SEC-013: Sigstore policy-controller verifies every Conhecer-se image by the cosign key used in the pipeline.
+Requires the policy-controller CRDs and the namespace label policy.sigstore.dev/include=true.
+A key authority without ctlog skips transparency-log lookup, matching signatures made with --tlog-upload=false.
+*/ -}}
+{{- if .Values.imageSignature.enforce }}
+{{- $key := required "imageSignature.publicKey: informe a chave pública cosign (PEM) da esteira para verificar as assinaturas na admissão." .Values.imageSignature.publicKey | trim }}
+{{- if not (contains "BEGIN PUBLIC KEY" $key) }}
+{{- fail "imageSignature.publicKey deve ser uma chave pública PEM; nunca informe a chave privada." }}
+{{- end }}
+{{- $baoDigest := regexFind "@sha256:[a-f0-9]{64}$" .Values.openbao.image }}
+{{- if not $baoDigest }}
+{{- fail "openbao.image precisa de digest sha256 fixado para ser admitido pela política de imagem de terceiros." }}
+{{- end }}
+{{- $ns := lookup "v1" "Namespace" "" .Release.Namespace }}
+{{- if and $ns (ne (dig "metadata" "labels" "policy.sigstore.dev/include" "" $ns) "true") }}
+{{- fail (printf "O namespace %s precisa do rótulo policy.sigstore.dev/include=true para a verificação de assinatura." .Release.Namespace) }}
+{{- end }}
+apiVersion: policy.sigstore.dev/v1beta1
+kind: ClusterImagePolicy
+metadata:
+  name: {{ printf "%s-%s-release" .Release.Namespace .Release.Name | trunc 63 | trimSuffix "-" }}
+  labels: {app.kubernetes.io/part-of: conhecerse}
+spec:
+  images:
+    - glob: {{ printf "%s/conhecerse*" .Values.registry | quote }}
+  authorities:
+    - name: conhecerse-release
+      key:
+        hashAlgorithm: sha256
+        data: |
+          {{- $key | nindent 10 }}
+---
+# The OpenBao agent is a third-party image: admitted only by its pinned content digest.
+apiVersion: policy.sigstore.dev/v1beta1
+kind: ClusterImagePolicy
+metadata:
+  name: {{ printf "%s-%s-openbao-agent" .Release.Namespace .Release.Name | trunc 63 | trimSuffix "-" }}
+  labels: {app.kubernetes.io/part-of: conhecerse}
+spec:
+  images:
+    - glob: {{ printf "**%s" $baoDigest | quote }}
+  authorities:
+    - name: pinned-openbao-agent
+      static: {action: pass}
+{{- end }}

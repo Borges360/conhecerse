@@ -79,7 +79,6 @@ public class ClinicalModule implements ModuleHandler {
                         decrypt(tenant, r, "referrals"));
         int v = version(r) + 1;
         if (c.path().endsWith("/sign")) {
-            a.recentMfa();
             Problem.require(!text(fields, "narrative").isBlank(), 422, "REQUIRED_FIELD_MISSING");
             var immutable =
                     object(

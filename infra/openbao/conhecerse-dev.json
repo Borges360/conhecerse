@@ -1,0 +1,20 @@
+{
+  "description": "SEC-012 lab workload identity: JWT role and least-privilege policy for the Conhecer-se API and worker in dev.",
+  "mount": "jenkins-jwt",
+  "mountType": "jwt",
+  "roleName": "conhecerse-dev",
+  "policyName": "conhecerse-dev",
+  "role": {
+    "role_type": "jwt",
+    "bound_subject": "system:serviceaccount:dev:conhecerse-workload",
+    "bound_audiences": ["openbao"],
+    "user_claim": "sub",
+    "token_policies": ["conhecerse-dev"],
+    "token_no_default_policy": true,
+    "token_type": "service",
+    "token_ttl": 3600,
+    "token_max_ttl": 86400
+  },
+  "policy": "path \"transit/encrypt/conhecerse\" { capabilities = [\"update\"] }\npath \"transit/decrypt/conhecerse\" { capabilities = [\"update\"] }\npath \"transit/hmac/conhecerse-video/sha2-256\" { capabilities = [\"update\"] }\npath \"secret/data/conhecerse/dev/*\" { capabilities = [\"read\"] }\npath \"auth/token/lookup-self\" { capabilities = [\"read\"] }\npath \"auth/token/renew-self\" { capabilities = [\"update\"] }\n",
+  "requiredTransitKeys": ["conhecerse", "conhecerse-video"]
+}

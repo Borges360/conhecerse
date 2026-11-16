@@ -65,11 +65,22 @@ public class ContentModule implements ModuleHandler {
         }
         if (path.contains("/public/newsletter/")) return newsletter(c);
         if (path.endsWith("/preferences")) {
-            Problem.require(
+            boolean patientPortal =
                     db.exists(
                             "select 1 from app.patients where tenant_id=? and portal_user_id=?",
                             tenant,
-                            a.user()),
+                            a.user());
+            boolean guardianPortal =
+                    db.exists(
+                            "select 1 from app.guardian_patient_access where tenant_id=? and"
+                                    + " guardian_user_id=? and legal_verified_at is not null and"
+                                    + " not review_required and valid_from<=now() and"
+                                    + " (valid_until is null or valid_until>now()) and"
+                                    + " cardinality(access_scope)>0",
+                            tenant,
+                            a.user());
+            Problem.require(
+                    patientPortal || guardianPortal,
                     404,
                     "RESOURCE_NOT_FOUND");
             var prefs =
@@ -144,7 +155,46 @@ public class ContentModule implements ModuleHandler {
                         a.user(),
                         b.path("noticeVersion").asText("communications-v1"),
                         me ? "ACCEPT" : "WITHDRAW");
-                if (!me)
+                if (guardianPortal && !patientPortal) {
+                    Problem.require(
+                            c.verifiedEmail() != null && !c.verifiedEmail().isBlank(),
+                            403,
+                            "VERIFIED_EMAIL_REQUIRED");
+                    byte[] guardianEmail = crypto.lookup(tenant, c.verifiedEmail());
+                    if (!me)
+                        db.exec(
+                                "update app.newsletter_subscriptions set"
+                                    + " unsubscribed_at=coalesce(unsubscribed_at,now()) where"
+                                    + " tenant_id=? and email_lookup_hmac=?",
+                                tenant,
+                                guardianEmail);
+                    else
+                        newsletter(
+                                new Command(
+                                        "POST",
+                                        "/v1/public/newsletter/subscribe",
+                                        "Content",
+                                        "PUBLIC",
+                                        Map.of(),
+                                        Map.of(),
+                                        object(
+                                                "orgSlug",
+                                                str(
+                                                        db.one(
+                                                                "select slug from app.organizations"
+                                                                        + " where id=?",
+                                                                tenant),
+                                                        "slug"),
+                                                "email",
+                                                c.verifiedEmail(),
+                                                "noticeVersion",
+                                                b.path("noticeVersion")
+                                                        .asText("communications-v1")),
+                                        a,
+                                        0,
+                                        c.verifiedEmail(),
+                                        UUID.randomUUID()));
+                } else if (!me)
                     db.exec(
                             "update app.newsletter_subscriptions set"
                                 + " unsubscribed_at=coalesce(unsubscribed_at,now()) where"

@@ -727,7 +727,7 @@ export const operations = [
     "method": "POST",
     "path": "/v1/orgs/{orgId}/clinical-notes/{noteId}/sign",
     "operationId": "post_v1_orgs_orgId_clinical_notes_noteId_sign",
-    "permission": "NOTE_AUTHOR_MFA",
+    "permission": "NOTE_AUTHOR",
     "tag": "Clinical",
     "request": "",
     "response": "ClinicalNote",

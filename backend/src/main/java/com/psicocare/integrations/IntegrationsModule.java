@@ -103,7 +103,6 @@ public class IntegrationsModule implements ModuleHandler, PaymentProvider {
                                                         "approved_by",
                                                         "approved_at"))
                                 .toList());
-            a.recentMfa();
             UUID id = UUID.randomUUID();
             db.exec(
                     "insert into"
@@ -138,7 +137,6 @@ public class IntegrationsModule implements ModuleHandler, PaymentProvider {
                                                     "capabilities"))
                             .toList());
         if (path.endsWith("/activate")) {
-            a.recentMfa();
             UUID id = c.id("connectionId");
             var config =
                     db.one(

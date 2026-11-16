@@ -4,14 +4,26 @@ from pathlib import Path
 import yaml
 
 ROOT=Path(__file__).resolve().parents[1]
-parser=argparse.ArgumentParser();parser.add_argument('--lab',type=Path,required=True);args=parser.parse_args();lab=args.lab.resolve()
+parser=argparse.ArgumentParser();parser.add_argument('--lab',type=Path,required=True)
+parser.add_argument('--files-only',action='store_true',help='Sincroniza só manifesto, NetworkPolicy, Dockerfile e esteira; não lê nem gera segredos.')
+args=parser.parse_args();lab=args.lab.resolve()
 if not (lab/'docs/QUICKSTART-APP.md').is_file():raise SystemExit('Repositório do laboratório não encontrado.')
 def update(relative,fn):
     path=lab/relative;old=path.read_text(encoding='utf-8');new=fn(old)
     if new!=old:path.write_text(new,encoding='utf-8',newline='\n')
 def append_once(old,marker,content):return old if marker in old else old.rstrip()+'\n\n'+content.strip()+'\n'
-for src,dst in [('infra/k3s/dev/conhecerse.yaml','infra/k3s/dev/conhecerse.yaml'),('infra/images/conhecerse/Dockerfile','infra/images/conhecerse/Dockerfile'),('infra/images/conhecerse/Dockerfile.dockerignore','infra/images/conhecerse/Dockerfile.dockerignore'),('pipelines/deploy-conhecerse-dev.Jenkinsfile','pipelines/deploy-conhecerse-dev.Jenkinsfile')]:
-    target=lab/dst;target.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(ROOT/src,target)
+IMAGE=re.compile(r'^(\s*image: registry\.platform\.svc\.cluster\.local:5000/(conhecerse(?:-api|-iam|-av)?))[:@]\S+$',re.M)
+def keep_deployed_images(source,target):
+    # gitops-publish.ps1 runs kubectl apply: keep the image refs Jenkins already rolled out instead of the placeholder.
+    if not target.exists():return source
+    deployed={m[2]:m[0].strip() for m in IMAGE.finditer(target.read_text(encoding='utf-8'))}
+    return IMAGE.sub(lambda m:m[1].split('image:')[0]+deployed[m[2]] if m[2] in deployed else m[0],source)
+for src,dst in [('infra/k3s/dev/conhecerse.yaml','infra/k3s/dev/conhecerse.yaml'),('infra/k3s/platform/openbao-conhecerse.yaml','infra/k3s/platform/openbao-conhecerse.yaml'),('infra/images/conhecerse/Dockerfile','infra/images/conhecerse/Dockerfile'),('infra/images/conhecerse/Dockerfile.dockerignore','infra/images/conhecerse/Dockerfile.dockerignore'),('pipelines/deploy-conhecerse-dev.Jenkinsfile','pipelines/deploy-conhecerse-dev.Jenkinsfile')]:
+    target=lab/dst;target.parent.mkdir(parents=True,exist_ok=True)
+    if dst=='infra/k3s/dev/conhecerse.yaml':
+        target.write_text(keep_deployed_images((ROOT/src).read_text(encoding='utf-8'),target),encoding='utf-8',newline='\n')
+    else:shutil.copyfile(ROOT/src,target)
+if args.files_only:raise SystemExit(print('Arquivos do Conhecer-se sincronizados. Nenhum segredo, catálogo, RBAC, apply, push ou build foi alterado.'))
 update('infra/k3s/platform/jenkins-rbac.yaml',lambda text: re.sub(r'(resourceNames: \[[^\n]*)(\])',lambda m:m[0] if '"conhecerse"' in m[0] else m[1]+', "conhecerse", "conhecerse-api", "conhecerse-worker", "conhecerse-iam", "conhecerse-av"'+m[2],text))
 
 def catalog(text):
@@ -26,9 +38,9 @@ def catalog(text):
 update('pipelines/catalog.json',catalog)
 
 def topology(text):
-    text=re.sub(r'conhecerse_dev: [^\n]+','conhecerse_dev: 3840       # web 256 + API 512 + worker 512 + IAM 512 + AV 2048; validar capacidade antes de aplicar',text)
-    if 'conhecerse_dev:' not in text:text=text.replace('      lume_dev:', '      conhecerse_dev: 3840       # web 256 + API 512 + worker 512 + IAM 512 + AV 2048; validar capacidade antes de aplicar\n      lume_dev:')
-    if 'conhecerse.lab: ingress' not in text:text=text.replace('    lume.lab: ingress','    conhecerse.lab: ingress\n    conhecerse-auth.lab: ingress\n    lume.lab: ingress')
+    text=re.sub(r'conhecerse_dev: [^\n]+','conhecerse_dev: 4096       # web 256 + API 512 + worker 512 + IAM 512 + AV 2048 + agentes OpenBao 256; validar capacidade antes de aplicar',text)
+    if 'conhecerse_dev:' not in text:text=text.replace('      lume_dev:', '      conhecerse_dev: 4096       # web 256 + API 512 + worker 512 + IAM 512 + AV 2048 + agentes OpenBao 256; validar capacidade antes de aplicar\n      lume_dev:')
+    if 'conhecerse.lab: ingress' not in text:text=text.replace('    lume.lab: ingress','    conhecerse.lab: ingress\n    lume.lab: ingress')
     text=re.sub(r'(^    dev: [^\n]+)',lambda m:m[0] if 'conhecerse' in m[0] else m[0]+', conhecerse (web/API/worker/IAM/AV)',text,flags=re.M)
     if '    conhecerse-dev:' not in text:text=text.replace('    lume-dev:', '    conhecerse-dev: build no K3s, deploy no namespace dev (http://conhecerse.lab/)\n    lume-dev:')
     return text
@@ -43,7 +55,7 @@ db_file.write_text(db_text,encoding='utf-8')
 
 env_file=lab/'infra/secrets/apps/conhecerse.env';env_file.parent.mkdir(parents=True,exist_ok=True)
 if not env_file.exists():
-    env={'APP_ENV':'dev','APP_ORIGIN':'http://conhecerse.lab','PUBLIC_URL':'http://conhecerse.lab','OIDC_ISSUER':'http://conhecerse-auth.lab/realms/conhecerse','OIDC_CLIENT_ID':'conhecerse-web','OIDC_AUDIENCE':'conhecerse-api','OIDC_CLIENT_SECRET':secrets.token_urlsafe(36),'BFF_ENCRYPTION_KEY':base64.b64encode(secrets.token_bytes(32)).decode(),'LOOKUP_HMAC_KEY':base64.b64encode(secrets.token_bytes(32)).decode(),'COOKIE_SECURE':'false','ENCRYPTION_PROVIDER':'openbao','BAO_URL':'http://openbao.platform.svc.cluster.local:8200','BAO_TOKEN_FILE':'/var/run/secrets/openbao/token','BAO_TOKEN':'','S3_ENDPOINT':'http://minio.dev.svc.cluster.local:9000','S3_PUBLIC_ENDPOINT':'https://minio.luizfelipeborges.dev','S3_REGION':'sa-east-1','S3_BUCKET':'conhecerse-private','AWS_ACCESS_KEY_ID':'','AWS_SECRET_ACCESS_KEY':'','CLAMAV_HOST':'conhecerse-av.dev.svc.cluster.local','CLAMAV_PORT':'3310','VIDEO_APPROVED':'false','FISCAL_APPROVED':'false','TEMPLATES_APPROVED':'false','KC_BOOTSTRAP_ADMIN_USERNAME':'admin-conhecerse','KC_BOOTSTRAP_ADMIN_PASSWORD':secrets.token_urlsafe(36)}
+    env={'APP_ENV':'dev','APP_ORIGIN':'http://conhecerse.lab','PUBLIC_URL':'http://conhecerse.lab','OIDC_ISSUER':'http://conhecerse.lab/auth/realms/conhecerse','OIDC_CLIENT_ID':'conhecerse-web','OIDC_AUDIENCE':'conhecerse-api','OIDC_CLIENT_SECRET':secrets.token_urlsafe(36),'BFF_ENCRYPTION_KEY':base64.b64encode(secrets.token_bytes(32)).decode(),'LOOKUP_HMAC_KEY':base64.b64encode(secrets.token_bytes(32)).decode(),'COOKIE_SECURE':'false','ENCRYPTION_PROVIDER':'openbao','BAO_URL':'http://openbao.platform.svc.cluster.local:8200','BAO_TOKEN_FILE':'/var/run/secrets/openbao/token','BAO_TOKEN':'','S3_ENDPOINT':'http://minio.dev.svc.cluster.local:9000','S3_PUBLIC_ENDPOINT':'https://minio.luizfelipeborges.dev','S3_REGION':'sa-east-1','S3_BUCKET':'conhecerse-private','AWS_ACCESS_KEY_ID':'','AWS_SECRET_ACCESS_KEY':'','CLAMAV_HOST':'conhecerse-av.dev.svc.cluster.local','CLAMAV_PORT':'3310','VIDEO_APPROVED':'false','FISCAL_APPROVED':'false','TEMPLATES_APPROVED':'false','KC_BOOTSTRAP_ADMIN_USERNAME':'admin-conhecerse','KC_BOOTSTRAP_ADMIN_PASSWORD':secrets.token_urlsafe(36)}
     env_file.write_text('\n'.join(k+'='+v for k,v in env.items())+'\n',encoding='utf-8')
 
 secrets_block=r'''
@@ -77,7 +89,7 @@ secrets_block=r'''
         Apply-Secret 'platform' 'conhecerse-dev-db' @{
             'DB_URL' = $conDb; 'MIGRATOR_USER' = $s['postgres_conhecerse_migrator_user']; 'MIGRATOR_PASSWORD' = $s['postgres_conhecerse_migrator_password']
         }
-        if ($con['BAO_TOKEN']) { Apply-Secret 'dev' 'conhecerse-bao-token' @{ 'token' = $con['BAO_TOKEN'] } }
+        # SEC-012: API/worker autenticam no OpenBao pelo agente com token projetado; nenhum token estático é provisionado.
     }
 '''
 def apply_script(text):
@@ -136,13 +148,13 @@ update('playbooks/credenciais.md',lambda text:append_once(text,'apps/conhecerse.
 | Fonte | Materialização |
 | --- | --- |
 | `db.yml`, `postgres_conhecerse_*` | Papéis separados runtime, migrator, BFF e IAM; bancos `conhecerse` e `conhecerse_iam` no db01 |
-| `apps/conhecerse.env` | `dev/conhecerse-app`, `dev/conhecerse-web`, `dev/conhecerse-iam`, `platform/conhecerse-dev-db`; `dev/conhecerse-bao-token` quando o token restrito for provisionado |
+| `apps/conhecerse.env` | `dev/conhecerse-app`, `dev/conhecerse-web`, `dev/conhecerse-iam`, `platform/conhecerse-dev-db`; o token do OpenBao vem do role JWT `conhecerse-dev` (mount `jenkins-jwt`, service account `dev/conhecerse-workload`), sem Secret estático |
 
 Segredos de fornecedores ficam no OpenBao. Bucket privado e credencial limitada do MinIO devem ser provisionados antes do primeiro uso de arquivos. Os campos ausentes não são substituídos por valores de demonstração. Não publicar estes valores em logs.'''))
 for relative in ['infra/dns/adguard/config/AdGuardHome.yaml','infra/dns/adguard/runtime/conf/AdGuardHome.yaml']:
     if (lab/relative).exists():
         def dns(text):
-            for host in ['conhecerse.lab','conhecerse-auth.lab']:
+            for host in ['conhecerse.lab']:
                 rule='||'+host+'^$dnsrewrite=NOERROR;A;192.168.15.252'
                 if rule not in text:
                     if 'user_rules: []' in text:text=text.replace('user_rules: []',"user_rules:\n  - '"+rule+"'")

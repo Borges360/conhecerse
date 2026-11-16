@@ -13,7 +13,7 @@ As versões exatas ficam em `pnpm-lock.yaml`, `backend/pom.xml`, `.mvn/wrapper/m
 | Node.js |24.21.0|MIT; runtime sem npm/yarn; distribuição Windows verificada por SHA256 |
 | Zod / pnpm |4.6.7 /10.28.2|MIT |
 | Playwright / axe |1.64.0 /4.13.0|Apache2 /MPL2 |
-| Keycloak |26.8.1|Apache2; realm importado e login/MFA reais testados |
+| Keycloak |26.8.1|Apache2; realm importado e login real testados |
 | OpenBao |2.7.1|MPL2; transit não exportável |
 | LiveKit server / client |1.13.9 /2.22.4|Apache2; mídia ainda depende de homologação |
 | ClamAV |1.5.4|GPL2; validar distribuição e atualização de assinaturas |

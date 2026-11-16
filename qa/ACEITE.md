@@ -62,6 +62,7 @@ Cada cenário tem **Given/When/Then**, evidência automática ou manual, respons
 | T-048 | Mensalidade SaaS é independente; ausência de aprovação/configuração não cria assinatura ou cobrança clínica. |
 | T-049 | Assinatura PAdES sintética: bytes, digest, certificado, cadeia/CRL e homologação; adulteração e formatos não suportados nunca viram validação automática. Homologar também certificados ICP-Brasil reais. |
 | T-050 | Callback alterado ou Svix expirado é negado. Homologar entrega/bounce, callbacks duplicados/atrasados, supressão, limite diário e DLQ com fornecedores reais. |
+| T-051 | Responsável com vínculo legal ativo e escopo `BILLING` lê somente as faturas ligadas; escrita continua negada e revogar o escopo remove listagem e leitura direta. Preferências de marketing do responsável afetam somente o email verificado dele, nunca o email do paciente. |
 
 O ciclo real de arquivos é reproduzível por `scripts/check-local-providers.py` e `qa/automation/storage-flow.cjs`; indisponibilidade não conta como sucesso. A confirmação de portabilidade exige revisão do conteúdo, download autenticado, expiração e auditoria com S3/AV reais.
 

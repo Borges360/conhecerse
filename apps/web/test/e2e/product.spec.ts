@@ -29,6 +29,20 @@ test("T-030 identity, navigation, modal focus and synthetic isolation", async ({
   await expect(
     page.getByRole("heading", { name: "Tempo para cada encontro." }),
   ).toBeVisible();
+  const weeklyCalendar = page.getByRole("region", {
+    name: "Agenda semanal",
+  });
+  await expect(weeklyCalendar).toHaveAttribute("tabindex", "0");
+  await weeklyCalendar.focus();
+  await expect(weeklyCalendar).toBeFocused();
+  const weekly = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"])
+    .analyze();
+  expect(
+    weekly.violations.filter(
+      (v) => v.impact === "critical" || v.impact === "serious",
+    ),
+  ).toEqual([]);
   await page.getByRole("button", { name: "Novo atendimento" }).click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await expect(page.getByLabel("Paciente", { exact: true })).toBeFocused();

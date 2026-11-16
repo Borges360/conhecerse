@@ -42,7 +42,7 @@ psico-platform/
 ## Ordem em PRs pequenos (um único marco final de produção)
 | PR group | Entregável obrigatório | Aceite que destrava |
 |---|---|---|
-| 01 | Monorepo, devcontainers, DB/migrations, IAM, OpenBao, auth gateway | builds, MFA, RLS isolamento |
+| 01 | Monorepo, devcontainers, DB/migrations, IAM, OpenBao, auth gateway | builds, RLS isolamento |
 | 02 | Organizações, profissionais, políticas, permissões, convites | ORG/PAT e 403/404 |
 | 03 | Pacientes, responsáveis, vínculo assistencial, direitos de acesso | PAT-* + SEC-001/002/003 |
 | 04 | Disponibilidade, recorrência, agenda, remarcação, confirmação, histórico | SCH-* + T-004..T-007,T-037 |

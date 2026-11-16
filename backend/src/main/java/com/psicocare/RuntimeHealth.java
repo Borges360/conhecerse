@@ -51,33 +51,32 @@ public class RuntimeHealth {
             if (provider.equals("local")) return Health.up().build();
             try {
                 if (!Files.isReadable(Path.of(tokenFile))) return Health.down().build();
-                var response =
+                var client =
                         java.net.http.HttpClient.newBuilder()
                                 .connectTimeout(java.time.Duration.ofSeconds(2))
-                                .build()
-                                .send(
-                                        java.net.http.HttpRequest.newBuilder(
-                                                        java.net.URI.create(
-                                                                baoUrl + "/v1/sys/health"))
-                                                .timeout(java.time.Duration.ofSeconds(3))
-                                                .GET()
-                                                .build(),
-                                        java.net.http.HttpResponse.BodyHandlers.discarding());
+                                .sslContext(com.psicocare.shared.OutboundHttp.sslContext())
+                                .build();
+                var response =
+                        client.send(
+                                java.net.http.HttpRequest.newBuilder(
+                                                java.net.URI.create(baoUrl + "/v1/sys/health"))
+                                        .timeout(java.time.Duration.ofSeconds(3))
+                                        .GET()
+                                        .build(),
+                                java.net.http.HttpResponse.BodyHandlers.discarding());
                 if (response.statusCode() != 200) return Health.down().build();
                 var auth =
-                        java.net.http.HttpClient.newHttpClient()
-                                .send(
-                                        java.net.http.HttpRequest.newBuilder(
-                                                        java.net.URI.create(
-                                                                baoUrl
-                                                                        + "/v1/auth/token/lookup-self"))
-                                                .timeout(java.time.Duration.ofSeconds(3))
-                                                .header(
-                                                        "X-Vault-Token",
-                                                        Files.readString(Path.of(tokenFile)).trim())
-                                                .GET()
-                                                .build(),
-                                        java.net.http.HttpResponse.BodyHandlers.discarding());
+                        client.send(
+                                java.net.http.HttpRequest.newBuilder(
+                                                java.net.URI.create(
+                                                        baoUrl + "/v1/auth/token/lookup-self"))
+                                        .timeout(java.time.Duration.ofSeconds(3))
+                                        .header(
+                                                "X-Vault-Token",
+                                                Files.readString(Path.of(tokenFile)).trim())
+                                        .GET()
+                                        .build(),
+                                java.net.http.HttpResponse.BodyHandlers.discarding());
                 return auth.statusCode() == 200 ? Health.up().build() : Health.down().build();
             } catch (Exception e) {
                 return Health.down().build();

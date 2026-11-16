@@ -1,5 +1,7 @@
 # Validação da implementação — 14/10/2026
 
+> **Registro histórico:** este documento descreve a verificação local e o estado conhecido em 14/10/2026; a afirmação abaixo de que não havia push/deploy era correta naquele corte. O laboratório recebeu deploy posterior: Jenkins #24, commit `8661385`, tag `24-8661385`, com evidência em [dev-lab-2026-10-17-release-24.json](evidencias/dev-lab-2026-10-17-release-24.json). Para o estado corrente, consulte [IMPLEMENTACAO_PENDENCIAS.md](../docs/IMPLEMENTACAO_PENDENCIAS.md). Produção continua sem aprovação.
+
 **Complementação:** [implementação das lacunas](../docs/IMPLEMENTACAO_PENDENCIAS.md). A seção abaixo preserva a execução anterior (97 testes/122 operações). A execução complementar tem contrato ampliado e evidência própria em `evidencias/complementacao-local.json`. Credenciais dos demais provedores serão cadastradas depois pelo usuário; isso não abre gates de produção.
 
 **Estado: implementação local e infraestrutura preparadas; produção não liberada.** A evidência local reproduzível está em `evidencias/validacao-local.json`. Os cenários e limites estão em `../docs/RASTREABILIDADE.md`; o aceite normativo permanece em `../qa/ACEITE.md`.
@@ -17,7 +19,7 @@ Resultado final: **97 testes Java, 21 unitários web, seis cenários de navegado
 
 - Backend Java 21/Spring Boot 4.1.1 e PostgreSQL 17.11 real, migrações Flyway V001..V008, runtime separado sem ownership/BYPASSRLS. A suíte inclui API, concorrência, RLS, autorização clínica, revogação, pagamentos, consentimentos, relatórios, recorrência e testes de domínio independentes do controller.
 - Frontend: TypeScript strict, build de produção Next.js, 21 testes unitários e seis cenários Playwright desktop/mobile. Cobrem navegação principal, semana/mês, foco/Escape, modo sintético somente leitura, cabeçalhos e axe sem violações críticas/graves nas páginas examinadas.
-- Duas jornadas adicionais com Keycloak 26.8.1 real: Authorization Code/PKCE, TOTP, cookie opaco HttpOnly, onboarding; profissional revisado → disponibilidade/preço → paciente → agenda → evolução assinada → pagamento manual → conteúdo revisado/publicado, com negação CSRF. Nenhum PSP ou pagamento externo é acionado nessa jornada.
+- Duas jornadas adicionais com Keycloak 26.8.1 real: Authorization Code/PKCE, autenticação, cookie opaco HttpOnly, onboarding; profissional revisado → disponibilidade/preço → paciente → agenda → evolução assinada → pagamento manual → conteúdo revisado/publicado, com negação CSRF. Nenhum PSP ou pagamento externo é acionado nessa jornada.
 - OpenAPI/SDK: 122 operações/63 schemas sincronizados; contratos de eventos versionados. Helm lint/render e OpenTofu fmt/validate executados. Manifesto do laboratório: 11 objetos, cinco Deployments, 3840MiB.
 - SCA local das dependências e secret scan sem HIGH/CRITICAL no último relatório registrado. Bases remotas Java, IAM e AV verificadas separadamente. O runtime web remove npm/yarn; o scan das imagens finais continua obrigatório no Jenkins após o build.
 

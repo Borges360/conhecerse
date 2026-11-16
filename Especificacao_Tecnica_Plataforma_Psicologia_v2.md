@@ -18,7 +18,7 @@ Construir em **uma entrega de produto completa**, não em MVP parcial, uma plata
 | ADR-001 | Estilo arquitetural | Monólito modular (Spring Modulith, Java 21 LTS, Spring Boot versão estável compatível fixada por lock de dependências e pipeline) com frontend Next.js/TypeScript, contratos REST/OpenAPI; workers no mesmo codebase em deployment separado |
 | ADR-002 | Persistência | PostgreSQL 17+, Flyway, UTC/timestamptz, `tenant_id`, chaves UUIDv7 quando disponível; extensões necessárias somente `pgcrypto`/`btree_gist`; criptografia aplicacional nos campos sensíveis |
 | ADR-003 | Tenancy | Uma organização = um tenant; schema compartilhado com RLS `FORCE` e dupla autorização no serviço; contexto de organização por rota validada; clínica nunca compartilha dados com outra |
-| ADR-004 | Identidade | OIDC/OAuth2 via Keycloak autogerenciado; Authorization Code + PKCE; BFF de sessão web com cookie `HttpOnly`, `Secure`, `SameSite=Lax`; MFA exigido para equipe; sessões do paciente com proteção adaptativa |
+| ADR-004 | Identidade | OIDC/OAuth2 via Keycloak autogerenciado; Authorization Code + PKCE; BFF de sessão web com cookie `HttpOnly`, `Secure`, `SameSite=Lax`; sessões do paciente com proteção adaptativa |
 | ADR-005 | Processamento assíncrono | `outbox` + `jobs` em PostgreSQL, consumidor com `FOR UPDATE SKIP LOCKED`, reprocessamento exponencial com jitter e DLQ; sem broker adicional na V1 |
 | ADR-006 | Vídeo | LiveKit OSS **autogerenciado em dois nós de rede pública, host networking + Redis de coordenação + TURN/TLS**, no Brasil, via adaptador `VideoProvider`; E2EE obrigatória antes de lançar, token efêmero; gravação, bots, transcrição e IA na sessão **não existem** |
 | ADR-007 | Pagamentos | PSP primário Asaas em conta vinculada à clínica; cobrança PIX/boleto/cartão via checkout hospedado, nunca guardar PAN/CVV; reconciliação por webhooks + polling compensatório |
@@ -77,7 +77,7 @@ Código Java em `com.psicocare.{identity,tenancy,patients,scheduling,video,clini
 | `api` | 2 | REST, autorização, mutações transacionais |
 | `worker` | 2 | jobs/integrações/notificações/relatórios |
 | `postgres` | HA gerenciado + réplica/backup | transações, RLS, outbox, relatórios |
-| `keycloak` | 2 + BD separado | identidade, MFA, OIDC |
+| `keycloak` | 2 + BD separado | identidade, OIDC |
 | `video` | 2 nós independentes com IP público + Redis HA | LiveKit SFU, signaling, TURN/TLS sem Egress |
 | `object storage` | redundante, privado | documentos, anexos, exportações |
 | `telemetry` | observabilidade segregada | métricas e auditoria operacional |
@@ -115,8 +115,8 @@ Ambientes `local`, `test`, `staging`, `production` segregados por contas, chaves
 ### 2.2 Atributos obrigatórios de autorização
 Em **toda** requisição tenant-scoped validar: (a) usuário ativo; (b) organização ativa; (c) vínculo de equipe ativo e papel **ou** vínculo de portal do paciente/responsável validado para o recurso; (d) recurso pertence à organização; (e) se clínico, atribuição ativa ao paciente; (f) status/legalidade do vínculo paciente/guardião; (g) operação liberada para estado atual. Checagem em service e RLS; negar se qualquer condição falhar. Workers carregam `service_tenant` explícito por job, com escopo mínimo e logs associados.
 
-### 2.3 Cadastro, MFA e convites
-- Onboarding clínica: proprietário verifica e-mail, aceita termos e política, cadastra CPF/CNPJ responsável por cobrança, dados da clínica, equipe, política de cancelamento e disponibilidade; exige email verificado e MFA para uso clínico.
+### 2.3 Cadastro e convites
+- Onboarding clínica: proprietário verifica e-mail, aceita termos e política, cadastra CPF/CNPJ responsável por cobrança, dados da clínica, equipe, política de cancelamento e disponibilidade; exige email verificado para uso clínico.
 - Psicólogo: nome, CRP UF/número, especialidades **autodeclaradas e revisadas**, dados fiscais e de atendimento. Suspender agenda pública se identificação profissional estiver pendente; never afirmar validado automaticamente sem fonte confiável.
 - Paciente: convite assinado com nonce de 256 bits, validade 72h, uso único, vinculação explícita ao cadastro e email/telefone confirmado. Sem encontrar pacientes por CPF/email global. Menores: vínculo com responsável, documentos pertinentes e análise de direito de acesso; não presumir que ser pagante concede acesso clínico.
 - Recuperação de conta: Keycloak, token efêmero, invalidação de sessões em mudança de fator, logs sem token.
@@ -239,7 +239,7 @@ Transação única: lock (`SELECT ... FOR UPDATE`) de solicitação e sessão or
 Endpoint verifica cabeçalho de autenticação/segredo conforme contrato e configuração do PSP, tamanho <=256KiB, armazena raw payload criptografado com retenção curta sem dados de cartão, deduplica evento; responde 2xx após persistir. Job serializa processamento por `(provider,paymentId)`, usa consulta API se necessário, aplica transição monotônica com compensações, escreve ledger e outbox. Webhook duplicado causa **zero** movimentos adicionais. Se PSP indisponível, retry e alerta, sem marcar pago. Não confiar em ordenação de webhooks.
 
 ### 4.4 Assinar evolução
-`POST /clinical-notes/{id}/sign` exige MFA recente para ações de assinatura definidas pela política, `If-Match`, autor e vínculo ativo; transação bloqueia nota, computa hash canônico (`canonical-json` UTF-8 dos campos imutáveis), marca `SIGNED`, cria audit hash-chained e outbox `ClinicalNoteSigned` **sem conteúdo clínico**; adendo posterior é outro registro encadeado. Armazenar a data e a identificação de autor; a assinatura interna não equivale automaticamente a certificado digital com validade legal externa.
+`POST /clinical-notes/{id}/sign` exige `If-Match`, autor e vínculo ativo; transação bloqueia nota, computa hash canônico (`canonical-json` UTF-8 dos campos imutáveis), marca `SIGNED`, cria audit hash-chained e outbox `ClinicalNoteSigned` **sem conteúdo clínico**; adendo posterior é outro registro encadeado. Armazenar a data e a identificação de autor; a assinatura interna não equivale automaticamente a certificado digital com validade legal externa.
 
 ## 5. Contratos de dados e criptografia
 - Campo `tenant_id` em **toda** tabela de negócio; FKs compostas `(tenant_id,id)` impedem relacionamento entre tenants. Índices começam em `tenant_id`, filtrados por status/datas quando conveniente.
@@ -259,7 +259,7 @@ Endpoint verifica cabeçalho de autenticação/segredo conforme contrato e confi
 | SEC-002 | Psicólogo A não lê notas do psicólogo B sem vínculo permitido | API+SQL adversarial |
 | SEC-003 | Dono/admin/secretaria sem papel clínico vinculado não leem evolução | testes 403/404 |
 | SEC-004 | TLS 1.2+ externo, TLS interno onde possível, HSTS, CSP, cookies restritos | scanner de headers e pen-test |
-| SEC-005 | MFA de equipe; autenticação centralizada OIDC/PKCE | testes E2E e desafio |
+| SEC-005 | autenticação centralizada OIDC/PKCE | testes E2E e desafio |
 | SEC-006 | Logs, traces e eventos sem narrativa clínica, CPF, credenciais | DLP canary scan |
 | SEC-007 | Todas as mutações financeiras idempotentes + webhook dedup | replay 10x |
 | SEC-008 | Backup criptografado diário+PITR; restore ensaiado trimestralmente | evidência de drill |
@@ -315,7 +315,7 @@ Dimensionamento de referência, não alegação sobre demanda real: 1.000 clíni
 ## 9. Requisitos de UX por tela (contrato de comportamento)
 | ID | Rota | Campos e ações obrigatórios | Estados específicos |
 |---|---|---|---|
-| UX-01 | `/login` | login OIDC, MFA, recuperação | carregando/erro/bloqueado |
+| UX-01 | `/login` | login OIDC, recuperação | carregando/erro/bloqueado |
 | UX-02 | `/app/orgs/:id/dashboard` | hoje, próximos, pendências, relatório diário | vazio/indisponível |
 | UX-03 | `/app/orgs/:id/agenda` | semana/mês, filtros, disponibilidade, ação criar/confirmar/remarcar/cancelar | loading/empty/conflict |
 | UX-04 | `/app/orgs/:id/pacientes` | lista paginada, busca cadastral, convite, detalhar | restricted/no-results |
@@ -325,7 +325,7 @@ Dimensionamento de referência, não alegação sobre demanda real: 1.000 clíni
 | UX-08 | `/app/orgs/:id/recibos` | elegíveis, status, copiar dados, abrir gov.br, registrar comprovante | external-issued/review |
 | UX-09 | `/app/orgs/:id/documentos` | modelos, editor, revisão, emissão, auditoria | draft/pending/issued |
 | UX-10 | `/app/orgs/:id/conteudos` | biblioteca, compartilhamento, blog/newsletter | draft/review/published |
-| UX-11 | `/app/orgs/:id/configuracoes` | equipe, canais, políticas, MFA, horas e feriados | denied/saved/conflict |
+| UX-11 | `/app/orgs/:id/configuracoes` | equipe, canais, políticas, horas e feriados | denied/saved/conflict |
 | UX-12 | `/portal` | meus agendamentos, pagamentos, documentos, materiais, preferências | invited/active/expired |
 | UX-13 | `/sessao/:appointmentId` | preflight, áudio/vídeo, status, botão sair, ajuda | waiting/joining/live/reconnect/end |
 | UX-14 | `/profissionais` | busca por público opt-in, perfil, solicitar horário | slot-taken/pending/hidden |
@@ -477,7 +477,7 @@ psico-platform/
 ## Ordem em PRs pequenos (um único marco final de produção)
 | PR group | Entregável obrigatório | Aceite que destrava |
 |---|---|---|
-| 01 | Monorepo, devcontainers, DB/migrations, IAM, OpenBao, auth gateway | builds, MFA, RLS isolamento |
+| 01 | Monorepo, devcontainers, DB/migrations, IAM, OpenBao, auth gateway | builds, RLS isolamento |
 | 02 | Organizações, profissionais, políticas, permissões, convites | ORG/PAT e 403/404 |
 | 03 | Pacientes, responsáveis, vínculo assistencial, direitos de acesso | PAT-* + SEC-001/002/003 |
 | 04 | Disponibilidade, recorrência, agenda, remarcação, confirmação, histórico | SCH-* + T-004..T-007,T-037 |
@@ -656,7 +656,7 @@ O CI deve publicar relatório JUnit, cobertura, mutation testing, DAST, SCA, SBO
 # Operação, implantação e resposta a falhas
 
 ## Perfis e controle
-- Plataforma com ambientes separados `dev/staging/prod`; acesso de infraestrutura concedido por OIDC + MFA + elevação temporária; deployments automatizados GitOps e revisão de duas pessoas para produção.
+- Plataforma com ambientes separados `dev/staging/prod`; acesso de infraestrutura concedido por OIDC + elevação temporária; deployments automatizados GitOps e revisão de duas pessoas para produção.
 - Segredos via OpenBao KV v2 + autenticação por workload; KMS externo ou transit engine com políticas não exportáveis. O OpenBao armazena segredos de fornecedores sem expor chaves a IAs e não substitui arquitetura de autorização dos dados clínicos.
 - Nomes de serviços `psico-web`, `psico-api`, `psico-worker`, `psico-keycloak`, `psico-postgres`, `psico-video` (dois nós rede pública com host networking e Redis HA de coordenação), `psico-objectstore`. Namespaces separados por ambiente. Domínios `app`, `api`, `meet`, `auth`, `assets` com DNS e TLS válidos.
 

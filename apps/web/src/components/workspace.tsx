@@ -2121,7 +2121,12 @@ function WeekCalendar({
   const days = weekDates(week),
     hours = Array.from({ length: 11 }, (_, i) => 8 + i);
   return (
-    <div className="calendar-scroll">
+    <div
+      className="calendar-scroll"
+      role="region"
+      aria-label="Agenda semanal"
+      tabIndex={0}
+    >
       <div className="week-calendar">
         <div className="calendar-corner">
           <Clock size={15} />

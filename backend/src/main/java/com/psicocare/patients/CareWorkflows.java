@@ -110,7 +110,6 @@ public class CareWorkflows implements ModuleHandler {
             }
             case "release" -> {
                 access.requireClinical(a, patient);
-                a.recentMfa();
                 gate(t, "GATE-CLINICAL-01");
                 Problem.require(str(row, "status").equals("PREPARED"), 409, "INVALID_TRANSITION");
                 Instant expiry =
@@ -132,7 +131,6 @@ public class CareWorkflows implements ModuleHandler {
             }
             case "revoke" -> {
                 access.requireClinical(a, patient);
-                a.recentMfa();
                 db.exec(
                         "update app.record_exports set status='REVOKED' where tenant_id=? and id=?",
                         t,
@@ -197,7 +195,6 @@ public class CareWorkflows implements ModuleHandler {
                             .toList());
         if (c.path().endsWith("/review")) {
             access.requireClinical(a, patient);
-            a.recentMfa();
             gate(t, "GATE-CLINICAL-01");
             UUID id = c.id("protocolId");
             var r =
@@ -264,7 +261,6 @@ public class CareWorkflows implements ModuleHandler {
                         patient);
         if (c.tail().equals("revoke-clinical")) {
             a.require("OWNER", "ADMIN");
-            a.recentMfa();
             db.exec(
                     "update app.guardian_clinical_reviews set revoked_at=now() where tenant_id=?"
                         + " and guardian_access_id=? and revoked_at is null",
@@ -273,7 +269,6 @@ public class CareWorkflows implements ModuleHandler {
             events.audit(a, "GuardianClinicalAccessRevoked", "guardianAccess", guardian);
             return object("id", guardian, "version", 1);
         }
-        a.recentMfa();
         gate(t, "GATE-LEGAL-01");
         gate(t, "GATE-CLINICAL-01");
         Problem.require(
@@ -366,7 +361,6 @@ public class CareWorkflows implements ModuleHandler {
                         request);
         UUID patient = id(r, "patient_id"), recipient = id(r, "requested_by");
         access.requireClinical(a, patient);
-        a.recentMfa();
         Problem.require(
                 Set.of("ACCESS", "PORTABILITY").contains(str(r, "request_type"))
                         && Set.of("OPEN", "IN_REVIEW").contains(str(r, "status")),

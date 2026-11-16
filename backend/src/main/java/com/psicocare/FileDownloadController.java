@@ -8,7 +8,6 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
 import java.util.*;
 
 @RestController
@@ -59,14 +58,6 @@ public class FileDownloadController {
                                 throw new IllegalStateException(e);
                             }
                         });
-        var jwt = authentication.getToken();
-        var amr = jwt.getClaimAsStringList("amr");
-        Instant mfa =
-                ((amr != null && (amr.contains("otp") || amr.contains("mfa")))
-                                || "2".equals(jwt.getClaimAsString("acr")))
-                        ? jwt.getClaimAsInstant("auth_time")
-                        : null;
-        if (!roles.isEmpty()) Problem.require(mfa != null, 403, "STAFF_MFA_REQUIRED");
         boolean portal =
                 db.exists(
                         "select 1 from app.patients where tenant_id=? and portal_user_id=?",
@@ -82,8 +73,7 @@ public class FileDownloadController {
                         user);
         Problem.require(!roles.isEmpty() || portal || guardian, 404, "RESOURCE_NOT_FOUND");
         byte[] data =
-                files.download(
-                        new Actor(orgId, user, roles, mfa, UUID.randomUUID()), fileId, ticket);
+                files.download(new Actor(orgId, user, roles, UUID.randomUUID()), fileId, ticket);
         String mime =
                 Store.str(
                         db.one(

@@ -144,7 +144,6 @@ public class DocumentsModule implements ModuleHandler {
             }
             if (path.endsWith("/approve")) {
                 a.require("OWNER", "ADMIN");
-                a.recentMfa();
                 Problem.require(
                         db.exists(
                                 "select 1 from app.release_approvals where tenant_id=? and"
@@ -191,7 +190,6 @@ public class DocumentsModule implements ModuleHandler {
             Problem.require(a.user().equals(d.get("author_user_id")), 404, "RESOURCE_NOT_FOUND");
             String status = str(d, "status");
             if (c.tail().equals("verify-signature")) {
-                a.recentMfa();
                 var asset = files.authorized(a, uuid(b, "fileId"), false);
                 Problem.require(
                         Objects.equals(asset.get("owner_patient_id"), d.get("patient_id"))
@@ -243,7 +241,6 @@ public class DocumentsModule implements ModuleHandler {
                             id);
                 }
                 case "submit-signature" -> {
-                    a.recentMfa();
                     Problem.require(status.equals("PENDING_SIGNATURE"), 409, "INVALID_TRANSITION");
                     var file = files.authorized(a, uuid(b, "signedFileId"), false);
                     Problem.require(

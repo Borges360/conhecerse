@@ -19,8 +19,6 @@ app:
     cookieSecure: true
     cookieHttpOnly: true
     cookieSameSite: Lax
-    staffMfaRequired: true
-    clinicalSignatureMfaRecencyMinutes: 15
     maxFailedLoginAttempts: 5
     rateLimitWindowMinutes: 15
   scheduling:

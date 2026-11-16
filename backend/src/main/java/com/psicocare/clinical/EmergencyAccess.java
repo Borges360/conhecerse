@@ -33,7 +33,6 @@ public class EmergencyAccess implements ModuleHandler {
         var a = c.actor();
         UUID t = a.tenant();
         a.require("OWNER", "ADMIN", "PSYCHOLOGIST");
-        a.recentMfa();
         if (!c.vars().containsKey("accessId")) {
             if (c.isGet())
                 return c.page(

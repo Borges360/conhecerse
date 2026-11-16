@@ -108,7 +108,6 @@ public class SubscriptionsModule implements ModuleHandler {
                             .toList();
             return page(list);
         }
-        a.recentMfa();
         if (Set.of("cancel", "reconcile").contains(c.tail())) {
             var r =
                     db.one(

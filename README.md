@@ -25,7 +25,7 @@ Em três terminais separados:
 .\scripts\run-local.ps1 web
 ```
 
-Abra `http://localhost:3000`. A demonstração está em `/demonstracao/dashboard`; dados reais usam `/app` e `/portal`. Configure SMTP no realm Keycloak para verificação de email e recuperação de conta. Faça o primeiro login, configure TOTP, crie a organização, cadastre/revise o CRP, a disponibilidade e os preços. O diretório público exige opt-in explícito do profissional.
+Abra `http://localhost:3000`. A demonstração está em `/demonstracao/dashboard`; dados reais usam `/app` e `/portal`. Configure SMTP no realm Keycloak para verificação de email e recuperação de conta. Faça o primeiro login, crie a organização, cadastre/revise o CRP, a disponibilidade e os preços. O diretório público exige opt-in explícito do profissional.
 
 Os segredos são gerados em `infra/secrets/local.env`, ignorado pelo Git. O bootstrap guarda recuperação do OpenBao local em arquivo privado; nunca utilize esse material ou o usuário raiz do S3 local em produção. Renove o token local com `scripts/run-local.ps1 renew-kms`. Veja [operação](docs/OPERACAO_IMPLEMENTACAO.md).
 
@@ -56,7 +56,7 @@ python scripts/check-infra.py
 python scripts/prepare_lab.py --lab C:\Users\felip\Desenvolvimento\jenkies
 ```
 
-Esses comandos somente preparam/validam arquivos. Publicação e primeiro build são passos separados do operador. O repositório remoto precisa receber o código antes do checkout do Jenkins. Os comandos de publicação e pré-requisitos estão no [runbook](docs/OPERACAO_IMPLEMENTACAO.md).
+Esses comandos somente preparam/validam arquivos. O código já foi publicado e o primeiro build/deploy de laboratório foi concluído pelo Jenkins #24; o estado atual e os limites estão no [runbook](docs/OPERACAO_IMPLEMENTACAO.md) e na [evidência da release 24](ops/evidencias/dev-lab-2026-10-17-release-24.json). A aplicação permanece somente no laboratório, com `releaseApproved=false`; publicação de novas releases e qualquer apply de infraestrutura seguem o fluxo operacional explícito, nunca `kubectl apply` direto dos manifestos.
 
 Produção: `infra/opentofu` provisiona RDS privado Multi-AZ, buckets privados/KMS, backup com object lock, Redis HA e dois nós LiveKit com ALB/TLS e TURN/TLS. O chart `infra/helm/conhecerse` inclui probes, políticas de rede, PDB, métricas e autenticação do OpenBao por workload. Valores de rede, DNS, certificados, AMI, segredos e evidências são entradas obrigatórias; nenhum apply foi executado.
 
@@ -75,3 +75,5 @@ Produção: `infra/opentofu` provisiona RDS privado Multi-AZ, buckets privados/K
 A ordem normativa continua: `DECISOES.md`, `SPECIFICACAO_TECNICA.md`, contratos, schema inicial e `qa/ACEITE.md`. [ADR-016](docs/adr/ADR-016-implementacao.md) registra as adaptações de implementação; o Word e a especificação consolidada foram analisados junto às fontes canônicas. [Inventário](docs/fontes-analisadas.json).
 
 Os campos e fluxos pendentes do relatório foram acrescentados por [ADR-017](docs/adr/ADR-017-completar-lacunas.md). Consulte [implementação e configuração](docs/IMPLEMENTACAO_PENDENCIAS.md) para protocolo remoto, portabilidade, responsáveis, acesso emergencial, mensalidade SaaS, assinaturas e callbacks de mensagens. As migrações novas são expansivas; credenciais e homologações reais continuam obrigatórias.
+
+A autenticação da equipe e do portal por senha está registrada no [ADR-018](docs/adr/ADR-018-autenticacao-equipe-senha.md). As pendências de entrega e o alcance das evidências estão na [reespecificação](docs/REESPECIFICACAO_PENDENCIAS.md).

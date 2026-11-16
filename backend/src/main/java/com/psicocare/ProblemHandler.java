@@ -111,8 +111,6 @@ public class ProblemHandler {
                         + " antes da emissão.";
             case "SLOT_UNAVAILABLE" -> "Esse horário já está ocupado. Escolha outro horário.";
             case "STALE_VERSION" -> "Este registro foi atualizado. Recarregue antes de salvar.";
-            case "STAFF_MFA_REQUIRED", "RECENT_MFA_REQUIRED" ->
-                    "Confirme sua identidade com o segundo fator.";
             case "PERMISSION_DENIED", "RESOURCE_NOT_FOUND" -> "Você não tem acesso a este recurso.";
             case "INVALID_TRANSITION" -> "Esta ação não está disponível no estado atual.";
             case "INTERNAL_ERROR" ->

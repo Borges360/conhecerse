@@ -29,13 +29,7 @@ class CriticalDomainTest {
             patient = UUID.randomUUID(),
             pro = UUID.randomUUID(),
             id = UUID.randomUUID();
-    Actor owner =
-            new Actor(
-                    tenant,
-                    user,
-                    Set.of("OWNER", "PSYCHOLOGIST"),
-                    Instant.now(),
-                    UUID.randomUUID());
+    Actor owner = new Actor(tenant, user, Set.of("OWNER", "PSYCHOLOGIST"), UUID.randomUUID());
     Store db;
     JdbcTemplate jdbc;
     Access access;
@@ -258,27 +252,9 @@ class CriticalDomainTest {
     }
 
     @Test
-    void clinicalSignatureRequiresRecentMfaAndNonemptyText() {
+    void clinicalSignatureRequiresNonemptyText() {
         row(note());
         var vars = Map.of("noteId", id.toString());
-        var stale =
-                new Actor(
-                        tenant,
-                        user,
-                        owner.roles(),
-                        Instant.now().minusSeconds(1800),
-                        UUID.randomUUID());
-        problem(
-                "RECENT_MFA_REQUIRED",
-                () ->
-                        clinical.execute(
-                                command(
-                                        "POST",
-                                        "/clinical-notes/x/sign",
-                                        object(),
-                                        stale,
-                                        vars,
-                                        1)));
         when(crypto.decrypt(any(), anyString(), any(), anyInt(), any())).thenReturn("");
         problem(
                 "REQUIRED_FIELD_MISSING",
@@ -425,8 +401,7 @@ class CriticalDomainTest {
     }
 
     Actor outsider() {
-        return new Actor(
-                tenant, UUID.randomUUID(), Set.of("PATIENT"), Instant.now(), UUID.randomUUID());
+        return new Actor(tenant, UUID.randomUUID(), Set.of("PATIENT"), UUID.randomUUID());
     }
 
     @Test

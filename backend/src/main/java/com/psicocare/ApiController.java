@@ -117,14 +117,8 @@ public class ApiController {
                                     String.class,
                                     user == null ? "" : user.toString());
                             Set<String> roles = new HashSet<>();
-                            Instant mfa = null;
                             String email = null;
                             if (authentication instanceof JwtAuthenticationToken jwt) {
-                                var amr = jwt.getToken().getClaimAsStringList("amr");
-                                String acr = jwt.getToken().getClaimAsString("acr");
-                                if ((amr != null && (amr.contains("otp") || amr.contains("mfa")))
-                                        || "2".equals(acr))
-                                    mfa = jwt.getToken().getClaimAsInstant("auth_time");
                                 if (Boolean.TRUE.equals(
                                         jwt.getToken().getClaimAsBoolean("email_verified")))
                                     email = jwt.getToken().getClaimAsString("email");
@@ -172,11 +166,9 @@ public class ApiController {
                                                         tenant,
                                                         user);
                                 if (roles.isEmpty() && !portal) throw Problem.notFound();
-                                if (!roles.isEmpty())
-                                    Problem.require(mfa != null, 403, "STAFF_MFA_REQUIRED");
                                 if (portal) roles.add("PATIENT");
                             }
-                            Actor actor = new Actor(tenant, user, roles, mfa, requestId);
+                            Actor actor = new Actor(tenant, user, roles, requestId);
                             var command =
                                     new Command(
                                             method,
@@ -288,9 +280,8 @@ public class ApiController {
             case "BILLING_WRITE", "BILLING_PRIVILEGED", "BILLING_READ" ->
                     a.require("OWNER", "ADMIN", "BILLING");
             case "REPORT_READ" -> a.require("OWNER", "ADMIN", "SECRETARY", "BILLING");
-            case "NOTE_AUTHOR_MFA" -> {
+            case "NOTE_AUTHOR" -> {
                 a.require("PSYCHOLOGIST");
-                a.recentMfa();
             }
             case "LOGIN", "USER_REGISTERED" ->
                     Problem.require(a.user() != null, 401, "UNAUTHENTICATED");

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowUpRight, LockKeyhole, ArrowLeft } from "lucide-react";
 import { Brand, Dandelion } from "@/components/brand";
 export default async function Login({
@@ -7,10 +8,13 @@ export default async function Login({
   searchParams: Promise<{ error?: string; next?: string }>;
 }) {
   const params = await searchParams;
+  if (!params.error) {
+    const next = params.next || "/app";
+    redirect("/api/auth/login?next=" + encodeURIComponent(next));
+  }
   return (
     <main className="login-page" id="conteudo">
       <div className="login-art">
-        <div className="paola-photo" />
         <div className="login-quote">
           <Dandelion size={90} />
           <p>
@@ -51,7 +55,7 @@ export default async function Login({
           <div className="login-security">
             <LockKeyhole size={17} />
             <span>
-              Autenticação protegida e verificação em duas etapas para a equipe.
+              Acesso protegido para cuidar de cada encontro.
             </span>
           </div>
           <Link className="text-link" href="/demonstracao">
