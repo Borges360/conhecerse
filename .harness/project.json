@@ -13,7 +13,7 @@
     "lint": "pnpm typecheck",
     "test": "pnpm test",
     "build": "pnpm build",
-    "dev": null,
+    "dev": "pnpm dev",
     "compose": null,
     "composeUp": null,
     "composeDown": null,
@@ -21,6 +21,7 @@
     "testE2e": "pnpm test:e2e"
   },
   "gitflow": {
+    "strategy": "gitflow",
     "main": "main",
     "develop": "develop",
     "featurePrefix": "feature/",
@@ -30,7 +31,14 @@
     ],
     "releasePrefix": "release/",
     "hotfixPrefix": "hotfix/",
-    "allowDirectPushToMain": false
+    "allowDirectPushToMain": false,
+    "publishRemote": "origin",
+    "protection": {
+      "requirePullRequest": true,
+      "allowForcePush": false,
+      "allowDeletion": false,
+      "enforceAdmins": false
+    }
   },
   "memory": {
     "workspace": "homelab",
