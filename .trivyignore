@@ -1,0 +1,11 @@
+# Achados HIGH sem correção publicada pelo fornecedor (gate Trivy do conhecerse-dev).
+# Cada linha só entra com justificativa e sai quando a correção existir: rodar o Trivy sem este
+# arquivo a cada atualização do Keycloak. Imagem: conhecerse-iam (quay.io/keycloak/keycloak:26.8.2, UBI 9).
+# java-21-openjdk-headless 21.0.13.0.9-1.2.el9: sem versão corrigida no Red Hat (revisto 17/11/2026).
+CVE-2026-91403
+# sqlite-libs 3.34.1-11.el9_8: sem versão corrigida no Red Hat; o Keycloak usa PostgreSQL (KC_DB=postgres),
+# o SQLite do sistema não é usado pelo serviço (revisto 17/11/2026).
+CVE-2026-119373
+CVE-2026-119374
+CVE-2026-119379
+CVE-2026-119586
